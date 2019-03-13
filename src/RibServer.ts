@@ -14,8 +14,8 @@ let instance = null
 export default class RibServer {
     private connFunction: Function
     private nameSpace: SocketIO.Namespace
-    private serverFunctionMap = new Map<string, Function>()
-    private clientFunctionMap = new Map<string, Function>()
+    private serverFunctionMap = new Map<string, ((...args: any[]) => void)>()
+    private clientFunctionMap = new Map<string, ((...args: any[]) => void)>()
     private socketList = new Map<string, SocketIORib.Socket>()
 
     /**
@@ -116,7 +116,7 @@ export default class RibServer {
         * Expose a server function that can be called with an instance of rib client
         * @param fn
     **/
-    exposeFunction(fn: Function) {
+    exposeFunction(fn: ((...args: any[]) => void)) {
         let fnName = fn.name
 
         if (this.serverFunctionMap.get(fnName)) {
@@ -130,7 +130,7 @@ export default class RibServer {
         * Expose server functions that can be called with an instance of rib client
         * @param fns
     **/
-    exposeFunctions(fns: Function[]) {
+    exposeFunctions(fns: ((...args: any[]) => void)[]) {
         for (let fn of fns) {
             this.exposeFunction(fn)
         }
@@ -140,17 +140,18 @@ export default class RibServer {
         * Conceal a server side function where it can no longer be accessed from a specific client
         * @param fn
     **/
-    concealFunction(fn: Function, client: any) {
+    concealFunction(fn: ((...args: any[]) => void), client: any) {
         let fnName = fn.name
+        let listener = this.serverFunctionMap.get(fnName)
         let socket = this.socketList.get(client._ribSocketId)
-        socket.off(fnName, () => {})
+        socket.removeListener(fnName, listener)
     }
 
     /**
         * Conceal server side functions where they can no longer be accessed from a specific client
         * @param fn
     **/
-    concealFunctions(fns: Function[], client: any) {
+    concealFunctions(fns: ((...args) => void)[], client: any) {
         for (let fn of fns) {
             this.concealFunction(fn, client)
         }

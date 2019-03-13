@@ -53,22 +53,22 @@ export default class RibServer {
         * Expose a server function that can be called with an instance of rib client
         * @param fn
     **/
-    exposeFunction(fn: Function): void;
+    exposeFunction(fn: ((...args: any[]) => void)): void;
     /**
         * Expose server functions that can be called with an instance of rib client
         * @param fns
     **/
-    exposeFunctions(fns: Function[]): void;
+    exposeFunctions(fns: ((...args: any[]) => void)[]): void;
     /**
         * Conceal a server side function where it can no longer be accessed from a specific client
         * @param fn
     **/
-    concealFunction(fn: Function, client: any): void;
+    concealFunction(fn: ((...args: any[]) => void), client: any): void;
     /**
         * Conceal server side functions where they can no longer be accessed from a specific client
         * @param fn
     **/
-    concealFunctions(fns: Function[], client: any): void;
+    concealFunctions(fns: ((...args: any[]) => void)[], client: any): void;
     private setUpSocketList;
     private setSocketFunctions;
     private sendKeysToClient;
