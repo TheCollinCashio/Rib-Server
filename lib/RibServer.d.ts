@@ -1,10 +1,15 @@
 /// <reference types="socket.io" />
 export default class RibServer {
-    private connFunc;
+    private connFunction;
     private nameSpace;
     private serverFunctionMap;
     private clientFunctionMap;
     private socketList;
+    /**
+        * Create an instance of RibServer
+        * @param nameSpace
+        * @param isSingleton
+    **/
     constructor(nameSpace?: string, isSingleton?: boolean);
     /**
         * Called after a rib client connects to the server
@@ -13,9 +18,9 @@ export default class RibServer {
     onConnect(callback: Function): void;
     /**
         * Sets all possible client functions
-        * @param funcNames
+        * @param fnNames
     **/
-    possibleClientFunctions(funcNames: string[]): void;
+    possibleClientFunctions(fnNames: string[]): void;
     /**
         * Starts up a server with a specified port and an optional message log
         * @param port
@@ -35,31 +40,35 @@ export default class RibServer {
     **/
     static setRoute(request: string, fileName: string): void;
     /**
-        * Set a static file that can be accessed from your app
-        * @param request
-        * @param fileName
+        * Set static folders that can be accessed by a client
+        * @param folderPath
     **/
-    static setClientFolder(folderNames: string[]): void;
+    static setClientFolder(folderPath: any): void;
     /**
-        * Expose a server function that can be called with ClientRib
-        * @param func
+        * Set static folders that can be accessed by a client
+        * @param folderPaths
     **/
-    exposeFunction(func: Function): void;
+    static setClientFolders(folderPaths: string[]): void;
     /**
-        * Expose an array of server functions that can be called with ClientRib
-        * @param func
+        * Expose a server function that can be called with an instance of rib client
+        * @param fn
     **/
-    exposeFunctions(funcs: Function[]): void;
+    exposeFunction(fn: Function): void;
     /**
-        * Stop listening for requests from this function called on the client
-        * @param func
+        * Expose server functions that can be called with an instance of rib client
+        * @param fns
     **/
-    concealFunction(func: Function): void;
+    exposeFunctions(fns: Function[]): void;
     /**
-        * Stop listening for requests from these functions called on the client
-        * @param func
+        * Conceal a server side function where it can no longer be accessed from a specific client
+        * @param fn
     **/
-    concealFunctions(funcs: Function[]): void;
+    concealFunction(fn: Function, client: any): void;
+    /**
+        * Conceal server side functions where they can no longer be accessed from a specific client
+        * @param fn
+    **/
+    concealFunctions(fns: Function[], client: any): void;
     private setUpSocketList;
     private setSocketFunctions;
     private sendKeysToClient;
@@ -73,5 +82,6 @@ export default class RibServer {
 export declare namespace SocketIORib {
     interface Socket extends SocketIO.Socket {
         _ribClient: any;
+        _ribSentFirstSetOfKeys: boolean;
     }
 }

@@ -187,7 +187,11 @@ export default class RibServer {
             this.setClientFunctionMap(keys)
             this.recievedKeysFromClientForSocket()
             this.recieveKeysFromClient()
-            this.connFunction(this.getPersistentObject(socket))
+
+            if(!socket._ribSentFirstSetOfKeys) {
+                this.connFunction(this.getPersistentObject(socket))
+                socket._ribSentFirstSetOfKeys = true
+            }
         })
     }
 
@@ -235,6 +239,7 @@ export default class RibServer {
 
 export namespace SocketIORib {
     export interface Socket extends SocketIO.Socket {
-        _ribClient: any
+        _ribClient: any,
+        _ribSentFirstSetOfKeys: boolean
     }
 }
