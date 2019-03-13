@@ -1,5 +1,5 @@
 /// <reference types="socket.io" />
-export default class Rib {
+export default class RibServer {
     private connFunc;
     private nameSpace;
     private serverFunctionMap;
