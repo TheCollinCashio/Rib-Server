@@ -12,12 +12,17 @@ let io = socket(server, { pingInterval: 3000, pingTimeout: 7500 })
 let instance = null
 
 export default class RibServer {
-    private connFunc: Function
+    private connFunction: Function
     private nameSpace: SocketIO.Namespace
     private serverFunctionMap = new Map<string, Function>()
     private clientFunctionMap = new Map<string, Function>()
     private socketList = new Map<string, SocketIORib.Socket>()
 
+    /**
+        * Create an instance of RibServer
+        * @param nameSpace
+        * @param isSingleton
+    **/
     constructor(nameSpace?: string, isSingleton = true) {
         let returnInstance = this
 
@@ -26,7 +31,7 @@ export default class RibServer {
         } else {
             this.nameSpace = this.nameSpace ? io.of(nameSpace) : io.of('/')
             this.nameSpace.on('connection', (socket: SocketIORib.Socket) => {
-                this.connFunc = this.connFunc ? this.connFunc : () => {} // keep app from breaking if user does not input a connFunc
+                this.connFunction = this.connFunction ? this.connFunction : () => {} // keep app from breaking if user does not input a connFunction
                 this.setUpPersistentObject(socket)
                 this.setUpSocketList(socket)
                 this.setSocketFunctions(socket)
@@ -47,17 +52,17 @@ export default class RibServer {
         * @callback clientObject
     **/
     onConnect(callback: Function) {
-        this.connFunc = callback
+        this.connFunction = callback
     }
 
     /**
         * Sets all possible client functions
-        * @param funcNames
+        * @param fnNames
     **/
-   possibleClientFunctions(funcNames: string[]) {
-        for (let funcName of funcNames) {
-            this.clientFunctionMap.set(funcName, () => {
-                console.log(`${funcName} has not been bound properly to server`)    //  this will never be logged
+   possibleClientFunctions(fnNames: string[]) {
+        for (let fnName of fnNames) {
+            this.clientFunctionMap.set(fnName, () => {
+                console.log(`${fnName} has not been bound properly to server`)    //  this will never be logged
             })
         }
     }
@@ -90,56 +95,64 @@ export default class RibServer {
     }
 
     /**
-        * Set a static file that can be accessed from your app
-        * @param request
-        * @param fileName
+        * Set static folders that can be accessed by a client
+        * @param folderPath
     **/
-    static setClientFolder(folderNames: string[]) {
-        for (let folder of folderNames) {
-            app.use(express.static(folder))
+    static setClientFolder(folderPath) {
+        app.use(express.static(folderPath))
+    }
+
+    /**
+        * Set static folders that can be accessed by a client
+        * @param folderPaths
+    **/
+    static setClientFolders(folderPaths: string[]) {
+        for (let folderPath of folderPaths) {
+            this.setClientFolder(folderPath)
         }
     }
 
     /**
-        * Expose a server function that can be called with ClientRib
-        * @param func
+        * Expose a server function that can be called with an instance of rib client
+        * @param fn
     **/
-    exposeFunction(func: Function) {
-        let funcName = func.name
+    exposeFunction(fn: Function) {
+        let fnName = fn.name
 
-        if (this.serverFunctionMap.get(funcName)) {
-            throw new Error(`${funcName} already exists. The function names need to be unique`)
+        if (this.serverFunctionMap.get(fnName)) {
+            throw new Error(`${fnName} already exists. The function names need to be unique`)
         } else {
-            this.serverFunctionMap.set(funcName, func)
+            this.serverFunctionMap.set(fnName, fn)
         }
     }
 
     /**
-        * Expose an array of server functions that can be called with ClientRib
-        * @param func
+        * Expose server functions that can be called with an instance of rib client
+        * @param fns
     **/
-    exposeFunctions(funcs: Function[]) {
-        for (let func of funcs) {
-            this.exposeFunction(func)
+    exposeFunctions(fns: Function[]) {
+        for (let fn of fns) {
+            this.exposeFunction(fn)
         }
     }
 
     /**
-        * Stop listening for requests from this function called on the client
-        * @param func
+        * Conceal a server side function where it can no longer be accessed from a specific client
+        * @param fn
     **/
-    concealFunction(func: Function) {
-        let funcName = func.name
-        this.serverFunctionMap.delete(funcName)
+    concealFunction(fn: Function, client: any) {
+        let fnName = fn.name
+        let socket = this.socketList.get(client._ribSocketId)
+        socket.off(fnName, () => {})
     }
 
     /**
-        * Stop listening for requests from these functions called on the client
-        * @param func
+        * Conceal server side functions where they can no longer be accessed from a specific client
+        * @param fn
     **/
-    concealFunctions(funcs: Function[]) {
-        for (let func of funcs) {
-            this.concealFunction(func)
+    concealFunctions(fns: Function[], client: any) {
+        for (let fn of fns) {
+            this.concealFunction(fn, client)
         }
     }
 
@@ -174,7 +187,7 @@ export default class RibServer {
             this.setClientFunctionMap(keys)
             this.recievedKeysFromClientForSocket()
             this.recieveKeysFromClient()
-            this.connFunc(this.getPersistentObject(socket))
+            this.connFunction(this.getPersistentObject(socket))
         })
     }
 
