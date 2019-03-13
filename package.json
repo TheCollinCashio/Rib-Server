@@ -1,7 +1,7 @@
 {
   "name": "rib-server",
-  "version": "1.0.1",
-  "description": "A Realtime Integrated Backend",
+  "version": "1.0.2",
+  "description": "A framework for a Realtime Integrated Backend",
   "main": "lib/RibServer.js",
   "types": "lib/RibServer.d.ts",
   "files": [
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TheCollinCashio/Rib-Client.git"
+    "url": "git+https://github.com/TheCollinCashio/Rib-Server.git"
   },
   "keywords": [
     "backend",
@@ -24,9 +24,9 @@
   "author": "Collin Cashio",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/TheCollinCashio/Rib-Client/issues"
+    "url": "https://github.com/TheCollinCashio/Rib-Server/issues"
   },
-  "homepage": "https://github.com/TheCollinCashio/Rib-Client#readme",
+  "homepage": "https://github.com/TheCollinCashio/Rib-Server#readme",
   "dependencies": {
     "express": "^4.16.4",
     "http": "0.0.0",
