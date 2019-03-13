@@ -1,0 +1,42 @@
+{
+  "name": "rib-server",
+  "version": "1.0.0",
+  "description": "A Realtime Integrated Backend",
+  "main": "lib/Rib.js",
+  "types": "lib/Rib.d.ts",
+  "files": [
+    "lib/*"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheCollinCashio/Rib-Client.git"
+  },
+  "keywords": [
+    "backend",
+    "realtime",
+    "frontend",
+    "executions",
+    "js"
+  ],
+  "author": "Collin Cashio",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TheCollinCashio/Rib-Client/issues"
+  },
+  "homepage": "https://github.com/TheCollinCashio/Rib-Client#readme",
+  "dependencies": {
+    "express": "^4.16.4",
+    "http": "0.0.0",
+    "socket.io": "^2.2.0",
+    "socket.io-redis": "^5.2.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.16.1",
+    "@types/node": "^11.11.1",
+    "@types/socket.io": "^2.1.2",
+    "@types/socket.io-redis": "^1.0.25"
+  }
+}
