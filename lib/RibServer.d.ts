@@ -4,7 +4,7 @@ export default class RibServer {
     private connFunction;
     private serverFunctionMap;
     private clientFunctionMap;
-    private socketList;
+    _socketMap: Map<string, SocketIORib.Socket>;
     /**
         * Create an instance of RibServer
         * @param nameSpace
@@ -69,7 +69,7 @@ export default class RibServer {
         * @param fn
     **/
     concealFunctions(fns: ((...args: any[]) => void)[], client: any): void;
-    private setUpSocketList;
+    private setUpSocketMap;
     private setSocketFunctions;
     private sendKeysToClient;
     private setUpPersistentObject;
