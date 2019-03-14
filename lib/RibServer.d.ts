@@ -1,7 +1,7 @@
 /// <reference types="socket.io" />
 export default class RibServer {
+    _nameSpace: SocketIO.Namespace;
     private connFunction;
-    private nameSpace;
     private serverFunctionMap;
     private clientFunctionMap;
     private socketList;
