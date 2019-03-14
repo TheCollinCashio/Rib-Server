@@ -1,4 +1,4 @@
 # Rib-Server
-A framework for a Realtime Integrated Backend
+Rib-Server is the simplest way to create and horizontally scale a realtime backend.
 
-For documentation, please visit the official [github](https://github.com/TheCollinCashio/Rib)
+For the official documentation, please click [here](https://github.com/TheCollinCashio/Rib).
