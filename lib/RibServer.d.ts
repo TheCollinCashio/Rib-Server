@@ -1,10 +1,10 @@
 /// <reference types="socket.io" />
 export default class RibServer {
     _nameSpace: SocketIO.Namespace;
+    _socketMap: Map<string, SocketIORib.Socket>;
     private connFunction;
     private serverFunctionMap;
     private clientFunctionMap;
-    _socketMap: Map<string, SocketIORib.Socket>;
     /**
         * Create an instance of RibServer
         * @param nameSpace

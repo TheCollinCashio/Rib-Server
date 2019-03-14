@@ -13,10 +13,10 @@ let instance = null
 
 export default class RibServer {
     public _nameSpace: SocketIO.Namespace
+    public _socketMap = new Map<string, SocketIORib.Socket>()
     private connFunction: Function
     private serverFunctionMap = new Map<string, ((...args: any[]) => void)>()
     private clientFunctionMap = new Map<string, ((...args: any[]) => void)>()
-    public _socketMap = new Map<string, SocketIORib.Socket>()
 
     /**
         * Create an instance of RibServer
