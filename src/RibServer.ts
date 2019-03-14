@@ -16,7 +16,7 @@ export default class RibServer {
     private connFunction: Function
     private serverFunctionMap = new Map<string, ((...args: any[]) => void)>()
     private clientFunctionMap = new Map<string, ((...args: any[]) => void)>()
-    private socketList = new Map<string, SocketIORib.Socket>()
+    public _socketMap = new Map<string, SocketIORib.Socket>()
 
     /**
         * Create an instance of RibServer
@@ -33,7 +33,7 @@ export default class RibServer {
             this._nameSpace.on('connection', (socket: SocketIORib.Socket) => {
                 this.connFunction = this.connFunction ? this.connFunction : () => {} // keep app from breaking if user does not input a connFunction
                 this.setUpPersistentObject(socket)
-                this.setUpSocketList(socket)
+                this.setUpSocketMap(socket)
                 this.setSocketFunctions(socket)
                 this.sendKeysToClient(socket)
                 this.setUpKeysFromClient(socket)
@@ -143,7 +143,7 @@ export default class RibServer {
     concealFunction(fn: ((...args: any[]) => void), client: any) {
         let fnName = fn.name
         let listener = this.serverFunctionMap.get(fnName)
-        let socket = this.socketList.get(client._ribSocketId)
+        let socket = this._socketMap.get(client._ribSocketId)
         socket.removeListener(fnName, listener)
     }
 
@@ -157,9 +157,9 @@ export default class RibServer {
         }
     }
 
-    private setUpSocketList(socket: SocketIORib.Socket) {
-        this.socketList.set(socket.id, socket)
-        socket.on('disconnect', () => { this.socketList.delete(socket.id) })
+    private setUpSocketMap(socket: SocketIORib.Socket) {
+        this._socketMap.set(socket.id, socket)
+        socket.on('disconnect', () => { this._socketMap.delete(socket.id) })
     }
 
     private setSocketFunctions(socket: SocketIORib.Socket) {
@@ -204,7 +204,7 @@ export default class RibServer {
                     if (finalArgument) {
                         if (finalArgument.exclude) {
                             let excludeSocketId = finalArgument.exclude._ribSocketId
-                            let excludeSocket = this.socketList.get(excludeSocketId)
+                            let excludeSocket = this._socketMap.get(excludeSocketId)
                             delete args[args.length - 1]
                             excludeSocket.broadcast.emit(key, ...args)
                         }
@@ -217,9 +217,9 @@ export default class RibServer {
     }
 
     private recievedKeysFromClientForSocket() {
-        let socketKeys = [...this.socketList.keys()]
+        let socketKeys = [...this._socketMap.keys()]
         for (let socketId of socketKeys) {
-            let socket = this.socketList.get(socketId)
+            let socket = this._socketMap.get(socketId)
             let ribClient = this.getPersistentObject(socket)
             let funcKeys = [...this.clientFunctionMap.keys()]
             for (let key of funcKeys) {
