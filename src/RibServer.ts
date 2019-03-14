@@ -12,8 +12,8 @@ let io = socket(server, { pingInterval: 3000, pingTimeout: 7500 })
 let instance = null
 
 export default class RibServer {
+    public _nameSpace: SocketIO.Namespace
     private connFunction: Function
-    private nameSpace: SocketIO.Namespace
     private serverFunctionMap = new Map<string, ((...args: any[]) => void)>()
     private clientFunctionMap = new Map<string, ((...args: any[]) => void)>()
     private socketList = new Map<string, SocketIORib.Socket>()
@@ -29,8 +29,8 @@ export default class RibServer {
         if (isSingleton && instance) {
             returnInstance = instance
         } else {
-            this.nameSpace = this.nameSpace ? io.of(nameSpace) : io.of('/')
-            this.nameSpace.on('connection', (socket: SocketIORib.Socket) => {
+            this._nameSpace = this._nameSpace ? io.of(nameSpace) : io.of('/')
+            this._nameSpace.on('connection', (socket: SocketIORib.Socket) => {
                 this.connFunction = this.connFunction ? this.connFunction : () => {} // keep app from breaking if user does not input a connFunction
                 this.setUpPersistentObject(socket)
                 this.setUpSocketList(socket)
@@ -210,7 +210,7 @@ export default class RibServer {
                         }
                     }
                 } else {
-                    this.nameSpace.emit(key, ...args)
+                    this._nameSpace.emit(key, ...args)
                 }
             })
         }
