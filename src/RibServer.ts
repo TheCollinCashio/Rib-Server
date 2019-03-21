@@ -15,6 +15,7 @@ export default class RibServer {
     public _nameSpace: SocketIO.Namespace
     public _socketMap = new Map<string, SocketIORib.Socket>()
     private connFunction: Function
+    private disconnFunction: Function
     private serverFunctionMap = new Map<string, ((...args: any[]) => void)>()
     private clientFunctionMap = new Map<string, ((...args: any[]) => void)>()
 
@@ -31,7 +32,7 @@ export default class RibServer {
         } else {
             this._nameSpace = this._nameSpace ? io.of(nameSpace) : io.of('/')
             this._nameSpace.on('connection', (socket: SocketIORib.Socket) => {
-                this.connFunction = this.connFunction ? this.connFunction : () => {} // keep app from breaking if user does not input a connFunction
+                this.connFunction = this.connFunction ? this.connFunction : () => { } // keep app from breaking if user does not input a connFunction
                 this.setUpPersistentObject(socket)
                 this.setUpSocketMap(socket)
                 this.setSocketFunctions(socket)
@@ -56,14 +57,35 @@ export default class RibServer {
     }
 
     /**
+        * Called after a rib client disconnects from the server
+        * @callback clientObject
+    **/
+    onDisconnect(callback: Function) {
+        this.disconnFunction = callback
+    }
+
+    /**
         * Sets all possible client functions
         * @param fnNames
     **/
-   possibleClientFunctions(fnNames: string[]) {
+    possibleClientFunctions(fnNames: string[]) {
         for (let fnName of fnNames) {
             this.clientFunctionMap.set(fnName, () => {
                 console.log(`${fnName} has not been bound properly to server`)    //  this will never be logged
             })
+        }
+    }
+
+    /**
+        * The safest way to call a client function
+        * @param fnName
+        * @param args
+    **/
+    call(fnName: string, args: any[]) {
+        if (typeof this[fnName] === 'function') {
+            this[fnName](...args)
+        } else {
+            console.error(`${fnName} is not an availiable function`)
         }
     }
 
@@ -73,7 +95,11 @@ export default class RibServer {
         * @param startMessage
     **/
     static startServer(port: number, startMessage?: string) {
-        server.listen(port, () => { if(startMessage) console.log(startMessage) })
+        server.listen(port, () => {
+            if (startMessage) {
+                console.log(startMessage)
+            }
+        })
     }
 
     /**
@@ -159,7 +185,10 @@ export default class RibServer {
 
     private setUpSocketMap(socket: SocketIORib.Socket) {
         this._socketMap.set(socket.id, socket)
-        socket.on('disconnect', () => { this._socketMap.delete(socket.id) })
+        socket.on('disconnect', () => { 
+            this._socketMap.delete(socket.id) 
+            this.disconnFunction(this.getPersistentObject(socket))
+        })
     }
 
     private setSocketFunctions(socket: SocketIORib.Socket) {
@@ -189,7 +218,7 @@ export default class RibServer {
             this.recievedKeysFromClientForSocket()
             this.recieveKeysFromClient()
 
-            if(!socket._ribSentFirstSetOfKeys) {
+            if (!socket._ribSentFirstSetOfKeys) {
                 this.connFunction(this.getPersistentObject(socket))
                 socket._ribSentFirstSetOfKeys = true
             }
@@ -199,6 +228,7 @@ export default class RibServer {
     private setClientFunctionMap(keys: string[]) {
         for (let key of keys) {
             this.clientFunctionMap.set(key, (...args) => {
+                let isGlobalEmit = true
                 if (args.length > 0) {
                     let finalArgument = args[args.length - 1]
                     if (finalArgument) {
@@ -207,9 +237,12 @@ export default class RibServer {
                             let excludeSocket = this._socketMap.get(excludeSocketId)
                             delete args[args.length - 1]
                             excludeSocket.broadcast.emit(key, ...args)
+                            isGlobalEmit = false
                         }
                     }
-                } else {
+                } 
+                
+                if(isGlobalEmit) {
                     this._nameSpace.emit(key, ...args)
                 }
             })
@@ -233,7 +266,11 @@ export default class RibServer {
     private recieveKeysFromClient() {
         let funcKeys = [...this.clientFunctionMap.keys()]
         for (let key of funcKeys) {
-            this[key] = this.clientFunctionMap.get(key)
+            if (this[key]) {
+                console.error(`${key} is a taken key and can't be overwritten`)
+            } else {
+                this[key] = this.clientFunctionMap.get(key)
+            }
         }
     }
 }

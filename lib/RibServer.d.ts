@@ -3,6 +3,7 @@ export default class RibServer {
     _nameSpace: SocketIO.Namespace;
     _socketMap: Map<string, SocketIORib.Socket>;
     private connFunction;
+    private disconnFunction;
     private serverFunctionMap;
     private clientFunctionMap;
     /**
@@ -17,10 +18,21 @@ export default class RibServer {
     **/
     onConnect(callback: Function): void;
     /**
+        * Called after a rib client disconnects from the server
+        * @callback clientObject
+    **/
+    onDisconnect(callback: Function): void;
+    /**
         * Sets all possible client functions
         * @param fnNames
     **/
     possibleClientFunctions(fnNames: string[]): void;
+    /**
+        * The safest way to call a client function
+        * @param fnName
+        * @param args
+    **/
+    call(fnName: string, args: any[]): void;
     /**
         * Starts up a server with a specified port and an optional message log
         * @param port
