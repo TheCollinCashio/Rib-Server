@@ -266,9 +266,7 @@ export default class RibServer {
     private recieveKeysFromClient() {
         let funcKeys = [...this.clientFunctionMap.keys()]
         for (let key of funcKeys) {
-            if (this[key]) {
-                console.error(`${key} is a taken key and can't be overwritten`)
-            } else {
+            if (!this[key]) {
                 this[key] = this.clientFunctionMap.get(key)
             }
         }

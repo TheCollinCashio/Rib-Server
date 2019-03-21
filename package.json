@@ -1,6 +1,6 @@
 {
   "name": "rib-server",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "A framework for a Realtime Integrated Backend",
   "main": "lib/RibServer.js",
   "types": "lib/RibServer.d.ts",
