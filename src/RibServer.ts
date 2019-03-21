@@ -187,7 +187,7 @@ export default class RibServer {
         this._socketMap.set(socket.id, socket)
         socket.on('disconnect', () => { 
             this._socketMap.delete(socket.id) 
-            this.disconnFunction(this.getPersistentObject(socket))
+            this.disconnFunction && this.disconnFunction(this.getPersistentObject(socket))
         })
     }
 
@@ -219,7 +219,7 @@ export default class RibServer {
             this.recieveKeysFromClient()
 
             if (!socket._ribSentFirstSetOfKeys) {
-                this.connFunction(this.getPersistentObject(socket))
+                this.connFunction && this.connFunction(this.getPersistentObject(socket))
                 socket._ribSentFirstSetOfKeys = true
             }
         })
