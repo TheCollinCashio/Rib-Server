@@ -7,46 +7,46 @@ export default class RibServer {
     private serverFunctionMap;
     private clientFunctionMap;
     /**
-        * Create an instance of RibServer
+        * Create an instance of rib-server.
         * @param nameSpace
         * @param isSingleton
     **/
     constructor(nameSpace?: string, isSingleton?: boolean);
     /**
-        * Called after a rib client connects to the server
+        * Call a function after a client connects to the server.
         * @callback clientObject
     **/
     onConnect(callback: Function): void;
     /**
-        * Called after a rib client disconnects from the server
+        * Call a function when a client disconnects from the server.
         * @callback clientObject
     **/
     onDisconnect(callback: Function): void;
     /**
-        * Sets all possible client functions
+        * Be able to call your client-side functions with ease of mind by setting an array of possible client-side functions.
         * @param fnNames
     **/
     possibleClientFunctions(fnNames: string[]): void;
     /**
-        * The safest way to call a client function
+        * The safest way to call a client function.
         * @param fnName
         * @param args
     **/
     call(fnName: string, args: any[]): void;
     /**
-        * Starts up a server with a specified port and an optional message log
+        * Starts up a server with a specified port and an optional message log.
         * @param port
         * @param startMessage
     **/
     static startServer(port: number, startMessage?: string): void;
     /**
         * Link to a redis server. This is for horizontal scaling your application
-        * More can be found on the official redis documentation at https://redis.io/
+        * More can be found on the official redis documentation at https://redis.io/.
         * @param url
     **/
     static setRedisUrl(url: string): void;
     /**
-        * Set a route for your application and the file to send with the associated route
+        * Set a route for your application and the file to send with the associated route.
         * @param request
         * @param fileName
     **/
@@ -62,22 +62,22 @@ export default class RibServer {
     **/
     static setClientFolders(folderPaths: string[]): void;
     /**
-        * Expose a server function that can be called with an instance of rib client
+        * Expose a server-side function that can be called from the rib-client instance
         * @param fn
     **/
     exposeFunction(fn: ((...args: any[]) => void)): void;
     /**
-        * Expose server functions that can be called with an instance of rib client
+        * Expose an array of server-side functions that can be called with a rib-client instance
         * @param fns
     **/
     exposeFunctions(fns: ((...args: any[]) => void)[]): void;
     /**
-        * Conceal a server side function where it can no longer be accessed from a specific client
+        * Conceal a server-side function where it can no longer be accessed from all clients
         * @param fn
     **/
     concealFunction(fn: ((...args: any[]) => void), client: any): void;
     /**
-        * Conceal server side functions where they can no longer be accessed from a specific client
+        * Conceal server-side functions where they can no longer be accessed from the client
         * @param fn
     **/
     concealFunctions(fns: ((...args: any[]) => void)[], client: any): void;
