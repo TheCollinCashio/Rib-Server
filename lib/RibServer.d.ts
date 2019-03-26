@@ -91,9 +91,14 @@ export default class RibServer {
     private recievedKeysFromClientForSocket;
     private recieveKeysFromClient;
 }
+declare class PersistentObj {
+    readonly _ribSocketId: string;
+    constructor(id: string);
+}
 export declare namespace SocketIORib {
     interface Socket extends SocketIO.Socket {
-        _ribClient: any;
+        _ribClient: PersistentObj;
         _ribSentFirstSetOfKeys: boolean;
     }
 }
+export {};

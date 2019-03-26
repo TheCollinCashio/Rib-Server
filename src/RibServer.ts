@@ -2,11 +2,13 @@ import * as express from 'express'
 import * as socket from 'socket.io'
 import * as redisAdapter from 'socket.io-redis'
 import { Server } from 'http'
+import { doesObjectMatchQuery } from './Helper'
 
 //  Setup Socket Application
 let app = express()
 let server = new Server(app)
 let io = socket(server, { pingInterval: 3000, pingTimeout: 7500 })
+let isRedisConnected = false
 
 //  Setup instance for Singleton Design Pattern
 let instance = null
@@ -109,6 +111,7 @@ export default class RibServer {
     **/
     static setRedisUrl(url: string) {
         io.adapter(redisAdapter(url))
+        isRedisConnected = true
     }
 
     /**
@@ -185,8 +188,8 @@ export default class RibServer {
 
     private setUpSocketMap(socket: SocketIORib.Socket) {
         this._socketMap.set(socket.id, socket)
-        socket.on('disconnect', () => { 
-            this._socketMap.delete(socket.id) 
+        socket.on('disconnect', () => {
+            this._socketMap.delete(socket.id)
             this.disconnFunction && this.disconnFunction(this.getPersistentObject(socket))
         })
     }
@@ -205,7 +208,7 @@ export default class RibServer {
     }
 
     private setUpPersistentObject(socket: SocketIORib.Socket) {
-        Object.assign(socket, { _ribClient: { _ribSocketId: socket.id } })
+        Object.assign(socket, { _ribClient: new PersistentObj(socket.id) })
     }
 
     private getPersistentObject(socket: SocketIORib.Socket) {
@@ -233,16 +236,51 @@ export default class RibServer {
                     let finalArgument = args[args.length - 1]
                     if (finalArgument) {
                         if (finalArgument.exclude) {
-                            let excludeSocketId = finalArgument.exclude._ribSocketId
-                            let excludeSocket = this._socketMap.get(excludeSocketId)
+                            finalArgument = Object.assign({}, finalArgument)    // store final argument
                             delete args[args.length - 1]
-                            excludeSocket.broadcast.emit(key, ...args)
+                            let excludeSocketId = finalArgument.exclude._ribSocketId
+
+                            if (excludeSocketId) {
+                                let excludeSocket = this._socketMap.get(excludeSocketId)
+                                delete args[args.length - 1]
+                                excludeSocket.broadcast.emit(key, ...args)
+                            } else {
+                                let finalArgumentQuery = finalArgument.exclude
+                                if (isRedisConnected) {
+                                    //  if redis is connected, more steps need to be implemented
+                                } else {
+                                    this._socketMap.forEach(socket => {
+                                        if(!doesObjectMatchQuery(this.getPersistentObject(socket), finalArgumentQuery)) {
+                                            socket.emit(key, ...args)
+                                        }
+                                    })
+                                }
+                            }
+                            isGlobalEmit = false
+                        } else if (finalArgument.include) {
+                            let includeSocketId = finalArgument.include._ribSocketId
+                            if (includeSocketId) {
+                                let includeSocket = this._socketMap.get(includeSocketId)
+                                delete args[args.length - 1]
+                                includeSocket.emit(key, ...args)
+                            } else {
+                                let finalArgumentQuery = finalArgument.include
+                                if (isRedisConnected) {
+                                    //  if redis is connected, more steps need to be implemented
+                                } else {
+                                    this._socketMap.forEach(socket => {
+                                        if(doesObjectMatchQuery(this.getPersistentObject(socket), finalArgumentQuery)) {
+                                            socket.emit(key, ...args)
+                                        }
+                                    })
+                                }
+                            }
                             isGlobalEmit = false
                         }
                     }
-                } 
-                
-                if(isGlobalEmit) {
+                }
+
+                if (isGlobalEmit) {
                     this._nameSpace.emit(key, ...args)
                 }
             })
@@ -273,9 +311,17 @@ export default class RibServer {
     }
 }
 
+class PersistentObj {
+    readonly _ribSocketId: string
+
+    constructor(id: string) {
+        this._ribSocketId = id
+    }
+}
+
 export namespace SocketIORib {
     export interface Socket extends SocketIO.Socket {
-        _ribClient: any,
+        _ribClient: PersistentObj,
         _ribSentFirstSetOfKeys: boolean
     }
 }
