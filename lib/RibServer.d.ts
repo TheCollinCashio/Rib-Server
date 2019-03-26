@@ -81,6 +81,7 @@ export default class RibServer {
         * @param fn
     **/
     concealFunctions(fns: ((...args: any[]) => void)[], client: any): void;
+    private setCustomHook;
     private setUpSocketMap;
     private setSocketFunctions;
     private sendKeysToClient;

@@ -1,4 +1,4 @@
-export function doesObjectMatchQuery(obj: any, query: any) {
+export function doesObjectMatchQuery(obj: any, query: object) {
     let isFound = true
     for (let key in query) {
         if (key === '$or') {

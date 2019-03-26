@@ -1,1 +1,1 @@
-export declare function doesObjectMatchQuery(obj: any, query: any): any;
+export declare function doesObjectMatchQuery(obj: any, query: object): any;

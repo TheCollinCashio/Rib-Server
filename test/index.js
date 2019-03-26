@@ -1,9 +1,14 @@
 let RibServer = require('../lib/RibServer').default
-RibServer.startServer(5000, 'This is much easier to program')
+let PORT = process.argv[2] || 5000
+let NAME = process.argv[3] || 'Collin'
+RibServer.startServer(PORT, 'This is much easier to program')
+RibServer.setRedisUrl('//localhost:6379/')
 
 let myRib = new RibServer()
 myRib.onConnect((client) => {
-    client.sendMSG('Welcome to this example 😃')
+    client.name = NAME
+    myRib.sendMSG('Welcome to this example 😃', { exclude: { name: 'Collin' } })
+    // client.sendMSG('Welcome to this example 😃')
 })
 
 myRib.onDisconnect((client) => {

@@ -43,6 +43,10 @@ export default class RibServer {
             })
         }
 
+        if(isRedisConnected) {
+            this.setCustomHook()
+        }
+
         if (isSingleton && !instance) {
             instance = this
         }
@@ -186,6 +190,25 @@ export default class RibServer {
         }
     }
 
+    private setCustomHook() {
+        this._nameSpace.adapter.customHook = ({ key, args, query, isInclude }, cb: (data: any) => void) => {
+            this._socketMap.forEach(socket => {
+                let persistentObj = this.getPersistentObject(socket)
+                if(doesObjectMatchQuery(persistentObj, query) && isInclude){
+                    let fn = persistentObj[key]
+                    if (typeof fn === 'function') {
+                        fn(...args)
+                    }
+                } else if(!doesObjectMatchQuery(persistentObj, query) && !isInclude) {
+                    let fn = persistentObj[key]
+                    if (typeof fn === 'function') {
+                        fn(...args)
+                    }
+                }
+            })
+        }
+    }
+
     private setUpSocketMap(socket: SocketIORib.Socket) {
         this._socketMap.set(socket.id, socket)
         socket.on('disconnect', () => {
@@ -247,7 +270,7 @@ export default class RibServer {
                             } else {
                                 let finalArgumentQuery = finalArgument.exclude
                                 if (isRedisConnected) {
-                                    //  if redis is connected, more steps need to be implemented
+                                    this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: finalArgumentQuery, isInclude: false })
                                 } else {
                                     this._socketMap.forEach(socket => {
                                         if(!doesObjectMatchQuery(this.getPersistentObject(socket), finalArgumentQuery)) {
@@ -266,7 +289,7 @@ export default class RibServer {
                             } else {
                                 let finalArgumentQuery = finalArgument.include
                                 if (isRedisConnected) {
-                                    //  if redis is connected, more steps need to be implemented
+                                    this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: finalArgumentQuery, isInclude: true })
                                 } else {
                                     this._socketMap.forEach(socket => {
                                         if(doesObjectMatchQuery(this.getPersistentObject(socket), finalArgumentQuery)) {
