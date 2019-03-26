@@ -2,11 +2,13 @@ import * as express from 'express'
 import * as socket from 'socket.io'
 import * as redisAdapter from 'socket.io-redis'
 import { Server } from 'http'
+import { doesObjectMatchQuery } from './Helper'
 
 //  Setup Socket Application
 let app = express()
 let server = new Server(app)
 let io = socket(server, { pingInterval: 3000, pingTimeout: 7500 })
+let isRedisConnected = false
 
 //  Setup instance for Singleton Design Pattern
 let instance = null
@@ -39,6 +41,10 @@ export default class RibServer {
                 this.sendKeysToClient(socket)
                 this.setUpKeysFromClient(socket)
             })
+        }
+
+        if(isRedisConnected) {
+            this.setCustomHook()
         }
 
         if (isSingleton && !instance) {
@@ -109,6 +115,7 @@ export default class RibServer {
     **/
     static setRedisUrl(url: string) {
         io.adapter(redisAdapter(url))
+        isRedisConnected = true
     }
 
     /**
@@ -183,10 +190,46 @@ export default class RibServer {
         }
     }
 
+    /**
+        * Run a persistent object function that matches a query
+        * @param fnName
+        * @param args
+        * @param query
+        * @param cb
+    **/
+    runPOF(key: string, args: any[], query: object, cb: (...args: any) => void) {
+        if (isRedisConnected) {
+            this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: query }, cb)
+        } else {
+            this._socketMap.forEach(socket => {
+                if(doesObjectMatchQuery(this.getPersistentObject(socket), query)) {
+                    socket.emit(key, ...args)
+                }
+            })
+        }
+    }
+
+    private setCustomHook() {
+        this._nameSpace.adapter.customHook = ({ key, args, query }, cb: (...args: any) => void) => {
+            this._socketMap.forEach(socket => {
+                let persistentObj = this.getPersistentObject(socket)
+                if(doesObjectMatchQuery(persistentObj, query)){
+                    let fn = persistentObj[key]
+                    if (typeof fn === 'function') {
+                        let data = fn(...args)
+                        if (typeof cb === 'function') {
+                            cb(data)
+                        }
+                    }
+                }
+            })
+        }
+    }
+
     private setUpSocketMap(socket: SocketIORib.Socket) {
         this._socketMap.set(socket.id, socket)
-        socket.on('disconnect', () => { 
-            this._socketMap.delete(socket.id) 
+        socket.on('disconnect', () => {
+            this._socketMap.delete(socket.id)
             this.disconnFunction && this.disconnFunction(this.getPersistentObject(socket))
         })
     }
@@ -205,7 +248,7 @@ export default class RibServer {
     }
 
     private setUpPersistentObject(socket: SocketIORib.Socket) {
-        Object.assign(socket, { _ribClient: { _ribSocketId: socket.id } })
+        Object.assign(socket, { _ribClient: new PersistentObj(socket.id) })
     }
 
     private getPersistentObject(socket: SocketIORib.Socket) {
@@ -232,17 +275,29 @@ export default class RibServer {
                 if (args.length > 0) {
                     let finalArgument = args[args.length - 1]
                     if (finalArgument) {
-                        if (finalArgument.exclude) {
-                            let excludeSocketId = finalArgument.exclude._ribSocketId
-                            let excludeSocket = this._socketMap.get(excludeSocketId)
-                            delete args[args.length - 1]
-                            excludeSocket.broadcast.emit(key, ...args)
+                        if (finalArgument.query) {
+                            let finalArgumentQuery = finalArgument.query
+                            let includeSocketId = finalArgumentQuery._ribSocketId
+                            if (includeSocketId) {
+                                delete args[args.length - 1]
+                                this._nameSpace.to(includeSocketId).emit(key, ...args)
+                            } else {
+                                if (isRedisConnected) {
+                                    this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: finalArgumentQuery })
+                                } else {
+                                    this._socketMap.forEach(socket => {
+                                        if(doesObjectMatchQuery(this.getPersistentObject(socket), finalArgumentQuery)) {
+                                            socket.emit(key, ...args)
+                                        }
+                                    })
+                                }
+                            }
                             isGlobalEmit = false
                         }
                     }
-                } 
-                
-                if(isGlobalEmit) {
+                }
+
+                if (isGlobalEmit) {
                     this._nameSpace.emit(key, ...args)
                 }
             })
@@ -273,9 +328,17 @@ export default class RibServer {
     }
 }
 
+class PersistentObj {
+    readonly _ribSocketId: string
+
+    constructor(id: string) {
+        this._ribSocketId = id
+    }
+}
+
 export namespace SocketIORib {
     export interface Socket extends SocketIO.Socket {
-        _ribClient: any,
+        _ribClient: PersistentObj,
         _ribSentFirstSetOfKeys: boolean
     }
 }

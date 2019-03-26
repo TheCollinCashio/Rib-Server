@@ -1,6 +1,6 @@
 {
   "name": "rib-server",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "A framework for a Realtime Integrated Backend",
   "main": "lib/RibServer.js",
   "types": "lib/RibServer.d.ts",
@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "pub": "tsc; npm publish",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsc; node test/index.js"
   },
   "repository": {
     "type": "git",

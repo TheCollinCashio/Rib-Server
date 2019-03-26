@@ -81,6 +81,15 @@ export default class RibServer {
         * @param fn
     **/
     concealFunctions(fns: ((...args: any[]) => void)[], client: any): void;
+    /**
+        * Run a persistent object function that matches a query
+        * @param fnName
+        * @param args
+        * @param query
+        * @param cb
+    **/
+    runPOF(key: string, args: any[], query: object, cb: (...args: any) => void): void;
+    private setCustomHook;
     private setUpSocketMap;
     private setSocketFunctions;
     private sendKeysToClient;
@@ -91,9 +100,14 @@ export default class RibServer {
     private recievedKeysFromClientForSocket;
     private recieveKeysFromClient;
 }
+declare class PersistentObj {
+    readonly _ribSocketId: string;
+    constructor(id: string);
+}
 export declare namespace SocketIORib {
     interface Socket extends SocketIO.Socket {
-        _ribClient: any;
+        _ribClient: PersistentObj;
         _ribSentFirstSetOfKeys: boolean;
     }
 }
+export {};
