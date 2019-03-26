@@ -7,7 +7,7 @@ RibServer.setRedisUrl('//localhost:6379/')
 let myRib = new RibServer()
 myRib.onConnect((client) => {
     client.name = NAME
-    myRib.sendMSG('Welcome to this example 😃', { query: { name: 'Collin' } })
+    myRib.sendMSG('Welcome to this example 😃', { query: { name: { $ne: 'Joe' } } })
     // client.sendMSG('Welcome to this example 😃')
 })
 
