@@ -190,19 +190,36 @@ export default class RibServer {
         }
     }
 
+    /**
+        * Run a persistent object function that matches a query
+        * @param fnName
+        * @param args
+        * @param query
+        * @param cb
+    **/
+    runPOF(key: string, args: any[], query: object, cb: (...args: any) => void) {
+        if (isRedisConnected) {
+            this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: query }, cb)
+        } else {
+            this._socketMap.forEach(socket => {
+                if(doesObjectMatchQuery(this.getPersistentObject(socket), query)) {
+                    socket.emit(key, ...args)
+                }
+            })
+        }
+    }
+
     private setCustomHook() {
-        this._nameSpace.adapter.customHook = ({ key, args, query, isInclude }, cb: (data: any) => void) => {
+        this._nameSpace.adapter.customHook = ({ key, args, query }, cb: (...args: any) => void) => {
             this._socketMap.forEach(socket => {
                 let persistentObj = this.getPersistentObject(socket)
-                if(doesObjectMatchQuery(persistentObj, query) && isInclude){
+                if(doesObjectMatchQuery(persistentObj, query)){
                     let fn = persistentObj[key]
                     if (typeof fn === 'function') {
-                        fn(...args)
-                    }
-                } else if(!doesObjectMatchQuery(persistentObj, query) && !isInclude) {
-                    let fn = persistentObj[key]
-                    if (typeof fn === 'function') {
-                        fn(...args)
+                        let data = fn(...args)
+                        if (typeof cb === 'function') {
+                            cb(data)
+                        }
                     }
                 }
             })
@@ -258,38 +275,15 @@ export default class RibServer {
                 if (args.length > 0) {
                     let finalArgument = args[args.length - 1]
                     if (finalArgument) {
-                        if (finalArgument.exclude) {
-                            finalArgument = Object.assign({}, finalArgument)    // store final argument
-                            delete args[args.length - 1]
-                            let excludeSocketId = finalArgument.exclude._ribSocketId
-
-                            if (excludeSocketId) {
-                                let excludeSocket = this._socketMap.get(excludeSocketId)
-                                delete args[args.length - 1]
-                                excludeSocket.broadcast.emit(key, ...args)
-                            } else {
-                                let finalArgumentQuery = finalArgument.exclude
-                                if (isRedisConnected) {
-                                    this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: finalArgumentQuery, isInclude: false })
-                                } else {
-                                    this._socketMap.forEach(socket => {
-                                        if(!doesObjectMatchQuery(this.getPersistentObject(socket), finalArgumentQuery)) {
-                                            socket.emit(key, ...args)
-                                        }
-                                    })
-                                }
-                            }
-                            isGlobalEmit = false
-                        } else if (finalArgument.include) {
-                            let includeSocketId = finalArgument.include._ribSocketId
+                        if (finalArgument.query) {
+                            let finalArgumentQuery = finalArgument.query
+                            let includeSocketId = finalArgumentQuery._ribSocketId
                             if (includeSocketId) {
-                                let includeSocket = this._socketMap.get(includeSocketId)
                                 delete args[args.length - 1]
-                                includeSocket.emit(key, ...args)
+                                this._nameSpace.to(includeSocketId).emit(key, ...args)
                             } else {
-                                let finalArgumentQuery = finalArgument.include
                                 if (isRedisConnected) {
-                                    this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: finalArgumentQuery, isInclude: true })
+                                    this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: finalArgumentQuery })
                                 } else {
                                     this._socketMap.forEach(socket => {
                                         if(doesObjectMatchQuery(this.getPersistentObject(socket), finalArgumentQuery)) {
