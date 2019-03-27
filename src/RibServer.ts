@@ -1,7 +1,6 @@
 import * as express from 'express'
 import * as socket from 'socket.io'
 import * as redisAdapter from 'socket.io-redis'
-import * as assert from 'assert'
 import { Server } from 'http'
 import { doesObjectMatchQuery } from './Helper'
 
@@ -219,18 +218,29 @@ export default class RibServer {
 
     private isArgsValid(args: any[], argTypes: string[], fnName: string) {
         let isArgsValid = true
+        let nTh = { 1: 'st', 2: 'nd', 3: 'rd' }
+
         if (typeof argTypes === 'object'){
-            for (let i=0; i<argTypes.length; i++) {
+            let argTypesLength = argTypes.length
+
+            for (let i=0; i<argTypesLength; i++) {
                 if (typeof args[i] !== argTypes[i]) {
-                    let nTh = { 1: 'st', 2: 'nd', 3: 'rd' }
                     let numChar = `${i+1}${nTh[i+1] ? nTh[i+1] : 'th'}`
                     isArgsValid = false
-
-                    console.error(
-                    new Error(`In function \x1b[36m${fnName}\x1b[0m:\nExpected argument type of \x1b[33m${argTypes[i]}\x1b[0m for \x1b[35m${numChar}\x1b[0m parameter, but found \x1b[31m${typeof args[i]}\x1b[0m`))
+                    let errorMessage = new Error(`In function \x1b[36m${fnName}\x1b[0m:\nExpected argument type of \x1b[33m${argTypes[i]}\x1b[0m for \x1b[35m${numChar}\x1b[0m parameter, but found \x1b[31m${typeof args[i]}\x1b[0m`)
+                    console.error(errorMessage)
                 }
             }
+
+            if (!(args[argTypesLength] instanceof PersistentObj)) {
+                let num = argTypesLength === 0 ? 1 : argTypesLength
+                let numChar = `${num}${nTh[num] ? nTh[num] : 'th'}`
+                isArgsValid = false
+                let errorMessage = `In function \x1b[36m${fnName}\x1b[0m:\nExpected argument to be an instance of \x1b[33mPersistentObject\x1b[0m for \x1b[35m${numChar}\x1b[0m parameter, but found \x1b[31m${typeof args[argTypesLength]}\x1b[0m`
+                console.error(errorMessage)
+            }
         }
+
         return isArgsValid
     }
 

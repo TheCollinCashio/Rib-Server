@@ -5,7 +5,6 @@ RibServer.startServer(5000, 'This is much easier to program')
 
 let myRib = new RibServer()
 myRib.onConnect((client) => {
-    console.log(client)
     myRib.sendMSG('Someone else joined the party 🎊', { query: { _ribId: { $ne: client._ribId } }})
     myRib.sendMSG('Welcome to this example 😃', { query: client })
 })
