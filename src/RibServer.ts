@@ -270,8 +270,9 @@ export default class RibServer {
     }
 
     private setSocketFunctions(socket: SocketIORib.Socket) {
-        this.serverFunctionMap.forEach((fn, event) => {
+        this.serverFunctionMap.forEach((x, event) => {
             socket.on(event, (...args) => {
+                let fn = this.serverFunctionMap.get(event)
                 fn(...args, this.getPersistentObject(socket))
             })
         })
