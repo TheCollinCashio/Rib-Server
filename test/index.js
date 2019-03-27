@@ -17,4 +17,4 @@ function logMessage(msg) {
 
 logMessage.argTypes = ['string']
 
-myRib.exposeFunction(logMessage)    // allows us to call logMessage from the client
+myRib.exposeFunction(logMessage)
