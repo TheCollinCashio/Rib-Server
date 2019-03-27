@@ -224,7 +224,7 @@ export default class RibServer {
             let argTypesLength = argTypes.length
 
             for (let i=0; i<argTypesLength; i++) {
-                if (typeof args[i] !== argTypes[i]) {
+                if (typeof args[i] !== argTypes[i] && argTypes[i] !== 'any') {
                     let numChar = `${i+1}${nTh[i+1] ? nTh[i+1] : 'th'}`
                     isArgsValid = false
                     let errorMessage = new Error(`In function \x1b[36m${fnName}\x1b[0m:\nExpected argument type of \x1b[33m${argTypes[i]}\x1b[0m for \x1b[35m${numChar}\x1b[0m parameter, but found \x1b[31m${typeof args[i]}\x1b[0m`)
