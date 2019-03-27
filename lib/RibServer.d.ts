@@ -102,7 +102,7 @@ export default class RibServer {
     private recieveKeysFromClient;
 }
 declare class PersistentObj {
-    readonly _ribSocketId: string;
+    readonly _ribId: string;
     constructor(id: string);
 }
 export declare namespace SocketIORib {

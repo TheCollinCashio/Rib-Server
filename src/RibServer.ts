@@ -184,7 +184,7 @@ export default class RibServer {
     concealFunction(fn: ((...args: any[]) => void), client: any) {
         let fnName = fn.name
         let listener = this.serverFunctionMap.get(fnName)
-        let socket = this._socketMap.get(client._ribSocketId)
+        let socket = this._socketMap.get(client._ribId)
         socket.removeListener(fnName, listener)
     }
 
@@ -302,10 +302,10 @@ export default class RibServer {
                     if (finalArgument) {
                         if (finalArgument.query) {
                             let finalArgumentQuery = finalArgument.query
-                            let includeSocketId = finalArgumentQuery._ribSocketId
-                            if (includeSocketId) {
+                            let includeId = finalArgumentQuery._ribId
+                            if (includeId && typeof includeId === 'string') {
                                 delete args[args.length - 1]
-                                this._nameSpace.to(includeSocketId).emit(key, ...args)
+                                this._nameSpace.to(includeId).emit(key, ...args)
                             } else {
                                 if (isRedisConnected) {
                                     this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: finalArgumentQuery })
@@ -354,10 +354,10 @@ export default class RibServer {
 }
 
 class PersistentObj {
-    readonly _ribSocketId: string
+    readonly _ribId: string
 
     constructor(id: string) {
-        this._ribSocketId = id
+        this._ribId = id
     }
 }
 
