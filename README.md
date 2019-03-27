@@ -84,3 +84,7 @@ Be able to call your client-side functions with ease of mind by setting an array
 **call: Function**
 
 The safest way to call a client function.
+
+**runPOF: Function**
+
+Run a persistent object function that matches a query

@@ -89,6 +89,7 @@ export default class RibServer {
         * @param cb
     **/
     runPOF(key: string, args: any[], query: object, cb: (...args: any) => void): void;
+    private isArgsValid;
     private setCustomHook;
     private setUpSocketMap;
     private setSocketFunctions;

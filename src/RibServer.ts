@@ -1,6 +1,7 @@
 import * as express from 'express'
 import * as socket from 'socket.io'
 import * as redisAdapter from 'socket.io-redis'
+import * as assert from 'assert'
 import { Server } from 'http'
 import { doesObjectMatchQuery } from './Helper'
 
@@ -152,10 +153,17 @@ export default class RibServer {
     exposeFunction(fn: ((...args: any[]) => void)) {
         let fnName = fn.name
 
+        //  @ts-ignore
+        let argTypes = fn.argTypes
+
         if (this.serverFunctionMap.get(fnName)) {
             throw new Error(`${fnName} already exists. The function names need to be unique`)
         } else {
-            this.serverFunctionMap.set(fnName, fn)
+            this.serverFunctionMap.set(fnName, (...args) => {
+                if (this.isArgsValid(args, argTypes, fnName)) {
+                    fn(...args)
+                }
+            })
         }
     }
 
@@ -207,6 +215,23 @@ export default class RibServer {
                 }
             })
         }
+    }
+
+    private isArgsValid(args: any[], argTypes: string[], fnName: string) {
+        let isArgsValid = true
+        if (typeof argTypes === 'object'){
+            for (let i=0; i<argTypes.length; i++) {
+                if (typeof args[i] !== argTypes[i]) {
+                    let nTh = { 1: 'st', 2: 'nd', 3: 'rd' }
+                    let numChar = `${i+1}${nTh[i+1] ? nTh[i+1] : 'th'}`
+                    isArgsValid = false
+
+                    console.error(
+                    new Error(`In function \x1b[36m${fnName}\x1b[0m:\nExpected argument type of \x1b[33m${argTypes[i]}\x1b[0m for \x1b[35m${numChar}\x1b[0m parameter, but found \x1b[31m${typeof args[i]}\x1b[0m`))
+                }
+            }
+        }
+        return isArgsValid
     }
 
     private setCustomHook() {
