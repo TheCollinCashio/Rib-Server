@@ -20,6 +20,7 @@ myRib.onConnect((client) => {
 function logMessage(msg) {
     console.log(msg)
 }
+logMessage.argTypes = ['string']    //  validates client passed 1st parameter of type string
 
 myRib.exposeFunction(logMessage)    // allows us to call logMessage from the client
 ```
@@ -63,11 +64,11 @@ Call a function when a client disconnects from the server.
 
 **exposeFunction: Function** 
 
-Expose a server-side function that can be called from the rib-client instance.
+Expose a server-side function that can be called from the rib-client instance. If argTypes is an tagged on to the function, functionName.argTypes = [], then this function's arguments will be validated before execution of the function.
 
 **exposeFunctions: Function** 
 
-Expose an array of server-side functions that can be called with a rib-client instance.
+Expose an array of server-side functions that can be called with a rib-client instance. If argTypes is an tagged on to a function, functionName.argTypes = [], then that function's arguments will be validated before execution of the function.
 
 **concealFunction: Function** 
 
