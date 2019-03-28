@@ -1,5 +1,5 @@
 # Rib-Server
-Rib-Server is the simplest way to create and horizontally scale a realtime backend. This should be coupled with [rib-client](https://www.npmjs.com/package/rib-client) to create a simple real-time application. Rib-Server allows you to call client-side functions directly from the client.
+Rib-Server is the simplest way to create and horizontally scale a realtime backend. This should be coupled with [rib-client](https://www.npmjs.com/package/rib-client) to create a simple real-time application. Rib-Server allows you to call client-side functions directly from the server.
 
 For the official github, please click [here](https://github.com/TheCollinCashio/Rib).
 
@@ -64,11 +64,11 @@ Call a function when a client disconnects from the server.
 
 **exposeFunction: Function** 
 
-Expose a server-side function that can be called from the rib-client instance. If argTypes is an tagged on to the function, functionName.argTypes = [], then this function's arguments will be validated before execution of the function.
+Expose a server-side function that can be called from the rib-client instance. If argTypes is an added onto the function, aka functionName.argTypes = [], then this function's arguments will be validated before executing the function. Recognized argtypes are 'undefined', 'object', 'boolean', 'number', 'string', 'symbol', 'function', and 'any'.
 
 **exposeFunctions: Function** 
 
-Expose an array of server-side functions that can be called with a rib-client instance. If argTypes is an tagged on to a function, functionName.argTypes = [], then that function's arguments will be validated before execution of the function.
+Expose an array of server-side functions that can be called with a rib-client instance. If argTypes is added onto a function, functionName.argTypes = [], then that function's arguments will be validated before executing the function. Recognized argtypes are 'undefined', 'object', 'boolean', 'number', 'string', 'symbol', 'function', and 'any'.
 
 **concealFunction: Function** 
 

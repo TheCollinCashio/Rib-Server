@@ -153,16 +153,18 @@ export default class RibServer {
         let fnName = fn.name
 
         //  @ts-ignore
-        let argTypes = fn.argTypes
+        let argTypes : string[] = fn.argTypes
 
-        if (this.serverFunctionMap.get(fnName)) {
-            throw new Error(`${fnName} already exists. The function names need to be unique`)
-        } else {
-            this.serverFunctionMap.set(fnName, (...args) => {
-                if (this.isArgsValid(args, argTypes, fnName)) {
-                    fn(...args)
-                }
-            })
+        if (this.isArgTypesValid(argTypes, fnName)) {
+            if (this.serverFunctionMap.get(fnName)) {
+                throw new Error(`${fnName} already exists. The function names need to be unique.`)
+            } else {
+                this.serverFunctionMap.set(fnName, (...args) => {
+                    if (this.isArgsValid(args, argTypes, fnName)) {
+                        fn(...args)
+                    }
+                })
+            }
         }
     }
 
@@ -216,12 +218,34 @@ export default class RibServer {
         }
     }
 
+    private isArgTypesValid(argTypes: string[], fnName: string) {
+        let isValid = true
+        if (typeof argTypes === 'object') {
+            let validArgTypes = ['undefined', 'object', 'boolean', 'number', 'string', 'symbol', 'function', 'object', 'any']
+            for (let i=0; i<argTypes.length; i++) {
+                if (validArgTypes.indexOf(argTypes[i]) === -1) {
+                    let possibleTypes = ''
+                    for (let x=0; x<validArgTypes.length; x++) {
+                        if (x === validArgTypes.length-1) {
+                            possibleTypes += `or \x1b[33m${validArgTypes[x]}\x1b[0m.`
+                        } else {
+                            possibleTypes += `\x1b[33m${validArgTypes[x]}\x1b[0m, `
+                        }
+                    }
+                    isValid = false
+                    throw new Error(`Invalid argType \x1b[31m${argTypes[i]}\x1b[0m in \x1b[36m${fnName}.argTypes\x1b[0m[\x1b[35m${i}\x1b[0m]:\nValid argTypes: ${possibleTypes}`)
+                }
+            }
+        }
+        return isValid
+    }
+
     private isArgsValid(args: any[], argTypes: string[], fnName: string) {
         let isArgsValid = true
-        let nTh = { 1: 'st', 2: 'nd', 3: 'rd' }
 
         if (typeof argTypes === 'object'){
             let argTypesLength = argTypes.length
+            let nTh = { 1: 'st', 2: 'nd', 3: 'rd' }
 
             for (let i=0; i<argTypesLength; i++) {
                 if (typeof args[i] !== argTypes[i] && argTypes[i] !== 'any') {
