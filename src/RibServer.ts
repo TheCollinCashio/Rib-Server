@@ -306,7 +306,7 @@ export default class RibServer {
                     excludeResArgs.splice(excludeResArgs.length - 1, 1)
                 }
                 let returnVal: any = fn(...excludeResArgs, this.getPersistentObject(socket))
-                if (returnVal !== undefined && typeof resolve === 'function') {
+                if (typeof resolve === 'function') {
                     if (returnVal instanceof Promise) {
                         returnVal.then((val) => {
                             resolve(val)
