@@ -11,23 +11,14 @@ myRib.onDisconnect((client) => {
     console.log('A client disconnected 🙁')
 })
 
-async function waitAndAdd(x, y) {
-    await waitAFew()
+function add(x, y) {
     return x+y
 }
-waitAndAdd.argTypes = ['number', 'number']
-
-function waitAFew() {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            resolve()
-        }, 3000)
-    })
-}
+add.argTypes = ['number', 'number']
 
 function logMessage(msg) {
     console.log(msg)
 }
 logMessage.argTypes = ['string']
 
-myRib.exposeFunctions([logMessage, waitAndAdd])
+myRib.exposeFunctions([logMessage, add])
