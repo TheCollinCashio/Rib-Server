@@ -22,7 +22,12 @@ function logMessage(msg) {
 }
 logMessage.argTypes = ['string']    //  validates client passed 1st parameter of type string
 
-myRib.exposeFunction(logMessage)    // allows us to call logMessage from the client
+function add(x, y) {
+    return x + y
+}
+add.argTypes = ['number', 'number']    //  validates client passed 1st & 2nd parameter of type number
+
+myRib.exposeFunctions([logMessage, add])    // allows us to call add & logMessage functions from the client
 ```
 
 ## Documentation
@@ -64,11 +69,11 @@ Call a function when a client disconnects from the server.
 
 **exposeFunction: Function** 
 
-Expose a server-side function that can be called from the rib-client instance. If argTypes is an added onto the function, aka functionName.argTypes = [], then this function's arguments will be validated before executing the function. Recognized argtypes are 'undefined', 'object', 'boolean', 'number', 'string', 'symbol', 'function', and 'any'.
+Expose a server-side function that can be called from the rib-client instance. If argTypes is an added onto the function, aka functionName.argTypes = [], then this function's arguments will be validated before executing the function. Recognized argtypes are 'undefined', 'object', 'boolean', 'number', 'string', 'symbol', and 'any'.
 
 **exposeFunctions: Function** 
 
-Expose an array of server-side functions that can be called with a rib-client instance. If argTypes is added onto a function, functionName.argTypes = [], then that function's arguments will be validated before executing the function. Recognized argtypes are 'undefined', 'object', 'boolean', 'number', 'string', 'symbol', 'function', and 'any'.
+Expose an array of server-side functions that can be called with a rib-client instance. If argTypes is added onto a function, functionName.argTypes = [], then that function's arguments will be validated before executing the function. Recognized argtypes are 'undefined', 'object', 'boolean', 'number', 'string', 'symbol', and 'any'.
 
 **concealFunction: Function** 
 

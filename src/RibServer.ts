@@ -77,7 +77,8 @@ export default class RibServer {
     possibleClientFunctions(fnNames: string[]) {
         for (let fnName of fnNames) {
             this.clientFunctionMap.set(fnName, () => {
-                console.log(`${fnName} has not been bound properly to server`)    //  this will never be logged
+                let errorMessage = new Error(`${fnName} has not been bound properly to server`)
+                console.error(errorMessage) 
             })
         }
     }
@@ -91,7 +92,8 @@ export default class RibServer {
         if (typeof this[fnName] === 'function') {
             this[fnName](...args)
         } else {
-            console.error(`${fnName} is not an availiable function`)
+            let errorMessage = `${fnName} is not an availiable function`
+            console.error(errorMessage)
         }
     }
 
@@ -161,7 +163,7 @@ export default class RibServer {
             } else {
                 this.serverFunctionMap.set(fnName, (...args) => {
                     if (this.isArgsValid(args, argTypes, fnName)) {
-                        fn(...args)
+                        return fn(...args)
                     }
                 })
             }
@@ -221,7 +223,7 @@ export default class RibServer {
     private isArgTypesValid(argTypes: string[], fnName: string) {
         let isValid = true
         if (typeof argTypes === 'object') {
-            let validArgTypes = ['undefined', 'object', 'boolean', 'number', 'string', 'symbol', 'function', 'object', 'any']
+            let validArgTypes = ['undefined', 'object', 'boolean', 'number', 'string', 'symbol', 'object', 'any']
             for (let i=0; i<argTypes.length; i++) {
                 if (validArgTypes.indexOf(argTypes[i]) === -1) {
                     let possibleTypes = ''
@@ -257,10 +259,10 @@ export default class RibServer {
             }
 
             if (!(args[argTypesLength] instanceof PersistentObj)) {
-                let num = argTypesLength === 0 ? 1 : argTypesLength
+                let num = argTypesLength + 1
                 let numChar = `${num}${nTh[num] ? nTh[num] : 'th'}`
                 isArgsValid = false
-                let errorMessage = `In function \x1b[36m${fnName}\x1b[0m:\nExpected argument to be an instance of \x1b[33mPersistentObject\x1b[0m for \x1b[35m${numChar}\x1b[0m parameter, but found \x1b[31m${typeof args[argTypesLength]}\x1b[0m`
+                let errorMessage = new Error(`In function \x1b[36m${fnName}\x1b[0m:\nExpected argument to be an instance of \x1b[33mPersistentObject\x1b[0m for \x1b[35m${numChar}\x1b[0m parameter, but found \x1b[31m${typeof args[argTypesLength]}\x1b[0m`)
                 console.error(errorMessage)
             }
         }
@@ -297,7 +299,22 @@ export default class RibServer {
         this.serverFunctionMap.forEach((x, event) => {
             socket.on(event, (...args) => {
                 let fn = this.serverFunctionMap.get(event)
-                fn(...args, this.getPersistentObject(socket))
+                let excludeResArgs = Object.assign([], args)
+                let resolve = null
+                if (args[args.length - 1] !== undefined && typeof args[args.length - 1] === 'function') {
+                    resolve = args[args.length - 1]
+                    excludeResArgs.splice(excludeResArgs.length - 1, 1)
+                }
+                let returnVal: any = fn(...excludeResArgs, this.getPersistentObject(socket))
+                if (returnVal !== undefined && typeof resolve === 'function') {
+                    if (returnVal instanceof Promise) {
+                        returnVal.then((val) => {
+                            resolve(val)
+                        })
+                    } else {
+                        resolve(returnVal)
+                    }
+                }
             })
         })
     }
