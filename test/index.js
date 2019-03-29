@@ -11,10 +11,14 @@ myRib.onDisconnect((client) => {
     console.log('A client disconnected 🙁')
 })
 
+function add(x, y) {
+    return x+y
+}
+add.argTypes = ['number', 'number']
+
 function logMessage(msg) {
     console.log(msg)
 }
-
 logMessage.argTypes = ['string']
 
-myRib.exposeFunction(logMessage)
+myRib.exposeFunctions([logMessage, add])
