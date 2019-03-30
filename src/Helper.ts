@@ -1,14 +1,14 @@
 export function doesObjectMatchQuery(obj: any, query: object) {
     let isFound = true
     for (let key in query) {
-        if (key === '$or') {
+        if (key === "$or") {
             let isOrFind = false
             for (let nextObj of query[key]) {
                 for (let orKey in nextObj) {
                     let queryValue = nextObj[orKey]
-                    if (queryValue['$in']) {
+                    if (queryValue["$in"]) {
                         let foundInArray = true
-                        for (let valueIn of queryValue['$in']) {
+                        for (let valueIn of queryValue["$in"]) {
                             if (!obj[orKey].includes(valueIn.toString())) {
                                 foundInArray = false
                                 break
@@ -22,26 +22,26 @@ export function doesObjectMatchQuery(obj: any, query: object) {
                             isOrFind = true
                             break
                         }
-                    } else if (typeof obj[orKey] === 'object' && typeof queryValue === 'object') {
+                    } else if (typeof obj[orKey] === "object" && typeof queryValue === "object") {
                         isOrFind = doesObjectMatchQuery(obj[orKey], queryValue)
                         if (isOrFind) {
                             break
                         }
-                    } else if (typeof obj[key] !== 'object' && typeof queryValue === 'object') {
-                        if (queryValue['$ne'] !== undefined) {
-                            if (queryValue['$ne'] !== obj[key]) {
+                    } else if (typeof obj[key] !== "object" && typeof queryValue === "object") {
+                        if (queryValue["$ne"] !== undefined) {
+                            if (queryValue["$ne"] !== obj[key]) {
                                 isOrFind = true
                                 break
                             }
                         }
     
-                        if(queryValue['$eq'] !== undefined) {
-                            if (queryValue['$eq'] === obj[key]) {
+                        if(queryValue["$eq"] !== undefined) {
+                            if (queryValue["$eq"] === obj[key]) {
                                 isOrFind = true
                                 break
                             }
                         }
-                    } else if (typeof obj[key] !== 'object' && typeof queryValue !== 'object') {
+                    } else if (typeof obj[key] !== "object" && typeof queryValue !== "object") {
                         if (obj[orKey] === queryValue) {
                             isOrFind = true
                             break
@@ -59,9 +59,9 @@ export function doesObjectMatchQuery(obj: any, query: object) {
         } else {
             let queryValue = query[key]
 
-            if (key === '$in') {
+            if (key === "$in") {
                 let foundInArray = true
-                for (let valueIn of query['$in']) {
+                for (let valueIn of query["$in"]) {
                     if (!obj.includes(valueIn.toString())) {
                         foundInArray = false
                         break
@@ -73,26 +73,26 @@ export function doesObjectMatchQuery(obj: any, query: object) {
                     break
                 }
             } else {
-                if (typeof obj[key] === 'object' && typeof queryValue === 'object') {
+                if (typeof obj[key] === "object" && typeof queryValue === "object") {
                     isFound = doesObjectMatchQuery(obj[key], queryValue)
                     if (!isFound) {
                         break
                     }
-                } else if (typeof obj[key] !== 'object' && typeof queryValue === 'object') {
-                    if (queryValue['$ne'] !== undefined) {
-                        if (queryValue['$ne'] === obj[key]) {
+                } else if (typeof obj[key] !== "object" && typeof queryValue === "object") {
+                    if (queryValue["$ne"] !== undefined) {
+                        if (queryValue["$ne"] === obj[key]) {
                             isFound = false
                             break
                         }
                     }
 
-                    if(queryValue['$eq'] !== undefined) {
-                        if (queryValue['$eq'] !== obj[key]) {
+                    if(queryValue["$eq"] !== undefined) {
+                        if (queryValue["$eq"] !== obj[key]) {
                             isFound = false
                             break
                         }
                     }
-                } else if (typeof obj[key] !== 'object' && typeof queryValue !== 'object') {
+                } else if (typeof obj[key] !== "object" && typeof queryValue !== "object") {
                     if (obj[key] !== queryValue) {
                         isFound = false
                         break

@@ -1,8 +1,8 @@
-import * as express from 'express'
-import * as socket from 'socket.io'
-import * as redisAdapter from 'socket.io-redis'
-import { Server } from 'http'
-import { doesObjectMatchQuery } from './Helper'
+import * as express from "express"
+import * as socket from "socket.io"
+import * as redisAdapter from "socket.io-redis"
+import { Server } from "http"
+import { doesObjectMatchQuery } from "./Helper"
 
 //  Setup Socket Application
 let app = express()
@@ -32,8 +32,8 @@ export default class RibServer {
         if (isSingleton && instance) {
             returnInstance = instance
         } else {
-            this._nameSpace = this._nameSpace ? io.of(nameSpace) : io.of('/')
-            this._nameSpace.on('connection', (socket: SocketIORib.Socket) => {
+            this._nameSpace = this._nameSpace ? io.of(nameSpace) : io.of("/")
+            this._nameSpace.on("connection", (socket: SocketIORib.Socket) => {
                 this.connFunction = this.connFunction ? this.connFunction : () => { } // keep app from breaking if user does not input a connFunction
                 this.setUpPersistentObject(socket)
                 this.setUpSocketMap(socket)
@@ -89,7 +89,7 @@ export default class RibServer {
         * @param args
     **/
     call(fnName: string, args: any[]) {
-        if (typeof this[fnName] === 'function') {
+        if (typeof this[fnName] === "function") {
             this[fnName](...args)
         } else {
             let errorMessage = `${fnName} is not an availiable function`
@@ -222,11 +222,11 @@ export default class RibServer {
 
     private isArgTypesValid(argTypes: string[], fnName: string) {
         let isValid = true
-        if (typeof argTypes === 'object') {
-            let validArgTypes = ['undefined', 'object', 'boolean', 'number', 'string', 'symbol', 'object', 'any']
+        if (typeof argTypes === "object") {
+            let validArgTypes = ["undefined", "object", "boolean", "number", "string", "symbol", "object", "null", "any"]
             for (let i=0; i<argTypes.length; i++) {
                 if (validArgTypes.indexOf(argTypes[i]) === -1) {
-                    let possibleTypes = ''
+                    let possibleTypes = ""
                     for (let x=0; x<validArgTypes.length; x++) {
                         if (x === validArgTypes.length-1) {
                             possibleTypes += `or \x1b[33m${validArgTypes[x]}\x1b[0m.`
@@ -245,22 +245,24 @@ export default class RibServer {
     private isArgsValid(args: any[], argTypes: string[], fnName: string) {
         let isArgsValid = true
 
-        if (typeof argTypes === 'object'){
+        if (typeof argTypes === "object"){
             let argTypesLength = argTypes.length
-            let nTh = { 1: 'st', 2: 'nd', 3: 'rd' }
+            let nTh = { 1: "st", 2: "nd", 3: "rd" }
 
             for (let i=0; i<argTypesLength; i++) {
-                if (typeof args[i] !== argTypes[i] && argTypes[i] !== 'any') {
-                    let numChar = `${i+1}${nTh[i+1] ? nTh[i+1] : 'th'}`
+                let actualType = args[i] === null ? "null" : typeof args[i]
+                let expectedType = argTypes[i]
+                if (actualType !== expectedType && argTypes[i] !== "any") {
+                    let numChar = `${i+1}${nTh[i+1] ? nTh[i+1] : "th"}`
                     isArgsValid = false
-                    let errorMessage = new Error(`In function \x1b[36m${fnName}\x1b[0m:\nExpected argument type of \x1b[33m${argTypes[i]}\x1b[0m for \x1b[35m${numChar}\x1b[0m parameter, but found \x1b[31m${typeof args[i]}\x1b[0m`)
+                    let errorMessage = new Error(`In function \x1b[36m${fnName}\x1b[0m:\nExpected argument type of \x1b[33m${expectedType}\x1b[0m for \x1b[35m${numChar}\x1b[0m parameter, but found \x1b[31m${actualType}\x1b[0m`)
                     console.error(errorMessage)
                 }
             }
 
             if (!(args[argTypesLength] instanceof PersistentObj)) {
                 let num = argTypesLength + 1
-                let numChar = `${num}${nTh[num] ? nTh[num] : 'th'}`
+                let numChar = `${num}${nTh[num] ? nTh[num] : "th"}`
                 isArgsValid = false
                 let errorMessage = new Error(`In function \x1b[36m${fnName}\x1b[0m:\nExpected argument to be an instance of \x1b[33mPersistentObject\x1b[0m for \x1b[35m${numChar}\x1b[0m parameter, but found \x1b[31m${typeof args[argTypesLength]}\x1b[0m`)
                 console.error(errorMessage)
@@ -276,9 +278,9 @@ export default class RibServer {
                 let persistentObj = this.getPersistentObject(socket)
                 if(doesObjectMatchQuery(persistentObj, query)){
                     let fn = persistentObj[key]
-                    if (typeof fn === 'function') {
+                    if (typeof fn === "function") {
                         let data = fn(...args)
-                        if (typeof cb === 'function') {
+                        if (typeof cb === "function") {
                             cb(data)
                         }
                     }
@@ -289,7 +291,7 @@ export default class RibServer {
 
     private setUpSocketMap(socket: SocketIORib.Socket) {
         this._socketMap.set(socket.id, socket)
-        socket.on('disconnect', () => {
+        socket.on("disconnect", () => {
             this._socketMap.delete(socket.id)
             this.disconnFunction && this.disconnFunction(this.getPersistentObject(socket))
         })
@@ -301,12 +303,12 @@ export default class RibServer {
                 let fn = this.serverFunctionMap.get(event)
                 let excludeResArgs = Object.assign([], args)
                 let resolve = null
-                if (args[args.length - 1] !== undefined && typeof args[args.length - 1] === 'function') {
+                if (args[args.length - 1] !== undefined && typeof args[args.length - 1] === "function") {
                     resolve = args[args.length - 1]
                     excludeResArgs.splice(excludeResArgs.length - 1, 1)
                 }
                 let returnVal: any = fn(...excludeResArgs, this.getPersistentObject(socket))
-                if (typeof resolve === 'function') {
+                if (typeof resolve === "function") {
                     if (returnVal instanceof Promise) {
                         returnVal.then((val) => {
                             resolve(val)
@@ -321,7 +323,7 @@ export default class RibServer {
 
     private sendKeysToClient(socket: SocketIORib.Socket) {
         let keys = [...this.serverFunctionMap.keys()]
-        socket.emit('RibSendKeysToClient', keys)
+        socket.emit("RibSendKeysToClient", keys)
     }
 
     private setUpPersistentObject(socket: SocketIORib.Socket) {
@@ -333,7 +335,7 @@ export default class RibServer {
     }
 
     private setUpKeysFromClient(socket: SocketIORib.Socket) {
-        socket.on('RibSendKeysToServer', (keys: string[]) => {
+        socket.on("RibSendKeysToServer", (keys: string[]) => {
             this.setClientFunctionMap(keys)
             this.recievedKeysFromClientForSocket()
             this.recieveKeysFromClient()
@@ -355,7 +357,7 @@ export default class RibServer {
                         if (finalArgument.query) {
                             let finalArgumentQuery = finalArgument.query
                             let includeId = finalArgumentQuery._ribId
-                            if (includeId && typeof includeId === 'string') {
+                            if (includeId && typeof includeId === "string") {
                                 delete args[args.length - 1]
                                 this._nameSpace.to(includeId).emit(key, ...args)
                             } else {

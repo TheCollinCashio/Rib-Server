@@ -5,27 +5,27 @@ For the official github, please click [here](https://github.com/TheCollinCashio/
 
 ## Example
 ```js
-let RibServer = require('rib-server').default
-RibServer.startServer(5000, 'This is much easier to program')
+let RibServer = require("rib-server").default
+RibServer.startServer(5000, "This is much easier to program")
 
 let myRib = new RibServer()
 myRib.onConnect((client) => {
     //  call the client-side function sendMSG on all clients except the one that just connected
-    myRib.sendMSG('Someone else joined the party 🎊', { query: { _ribId: { $ne: client._ribId } }})
+    myRib.sendMSG("Someone else joined the party 🎊", { query: { _ribId: { $ne: client._ribId } }})
 
     // call the client-side function sendMSG for just the newly connected client
-    client.sendMSG('Welcome to this example 😃')
+    client.sendMSG("Welcome to this example 😃")
 })
 
 function logMessage(msg) {
     console.log(msg)
 }
-logMessage.argTypes = ['string']    //  validates client passed 1st parameter of type string
+logMessage.argTypes = ["string"]    //  validates client passed 1st parameter of type string
 
 function add(x, y) {
     return x + y
 }
-add.argTypes = ['number', 'number']    //  validates client passed 1st & 2nd parameter of type number
+add.argTypes = ["number", "number"]    //  validates client passed 1st & 2nd parameter of type number
 
 myRib.exposeFunctions([logMessage, add])    // allows us to call add & logMessage functions from the client
 ```
@@ -53,7 +53,7 @@ Set static folders that can be accessed by a client.
 
 **The default constructor takes two parameters:**
 ```
-1) namespace //  The key that all clients are connected to (default is '/')
+1) namespace //  The key that all clients are connected to (default is "/")
 ```
 ```
 2) isSinglton   //  If true each instentiation of RibServer will yeild the same object (default is true)
@@ -69,11 +69,11 @@ Call a function when a client disconnects from the server.
 
 **exposeFunction: Function** 
 
-Expose a server-side function that can be called from the rib-client instance. If argTypes is an added onto the function, aka functionName.argTypes = [], then this function's arguments will be validated before executing the function. Recognized argtypes are 'undefined', 'object', 'boolean', 'number', 'string', 'symbol', and 'any'.
+Expose a server-side function that can be called from the rib-client instance. If argTypes is an added onto the function, aka functionName.argTypes = [], then this function's arguments will be validated before executing the function. Recognized argtypes are "undefined", "object", "boolean", "number", "string", "symbol", "null", and "any".
 
 **exposeFunctions: Function** 
 
-Expose an array of server-side functions that can be called with a rib-client instance. If argTypes is added onto a function, functionName.argTypes = [], then that function's arguments will be validated before executing the function. Recognized argtypes are 'undefined', 'object', 'boolean', 'number', 'string', 'symbol', and 'any'.
+Expose an array of server-side functions that can be called with a rib-client instance. If argTypes is added onto a function, functionName.argTypes = [], then that function's arguments will be validated before executing the function. Recognized argtypes are "undefined", "object", "boolean", "number", "string", "symbol", "null", and "any".
 
 **concealFunction: Function** 
 
