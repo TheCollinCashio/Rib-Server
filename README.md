@@ -1,4 +1,4 @@
-# Rib-Server [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/TheCollinCashio/Rib-Server/blob/master/README.md) [![npm version](https://img.shields.io/npm/v/rib-server.svg?style=flat)](https://www.npmjs.com/package/rib-server)
+# Rib-Server [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/TheCollinCashio/Rib/blob/master/LICENSE) [![npm version](https://img.shields.io/npm/v/rib-server.svg?style=flat)](https://www.npmjs.com/package/rib-server)
 Rib-Server is the simplest way to create and horizontally scale a realtime backend. This should be coupled with [rib-client](https://www.npmjs.com/package/rib-client) to create a simple real-time application. Rib-Server allows you to call client-side functions directly from the server.
 
 For the official github, please click [here](https://github.com/TheCollinCashio/Rib).
