@@ -148,6 +148,13 @@ export default class RibServer {
     }
 
     /**
+        * Get application to use for middleware
+    **/
+    static getApp() : Express.Application {
+        return app
+    }
+
+    /**
         * Expose a server-side function that can be called from the rib-client instance
         * @param fn
     **/

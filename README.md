@@ -51,6 +51,10 @@ Set static folder that can be accessed by a client.
 
 Set static folders that can be accessed by a client.
 
+**getApp: Static Function**
+
+Get application of type Express.Application to use for middleware.
+
 **The default constructor takes two parameters:**
 ```
 1) namespace //  The key that all clients are connected to (default is "/")
