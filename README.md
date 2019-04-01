@@ -14,7 +14,7 @@ myRib.onConnect((client) => {
     myRib.sendMSG("Someone else joined the party 🎊", { query: { _ribId: { $ne: client._ribId } }})
 
     // call the client-side function sendMSG for just the newly connected client
-    client.sendMSG("Welcome to this example 😃")
+    myRib.sendMSG("Welcome to this example 😃", { query: client })
 })
 
 function logMessage(msg) {

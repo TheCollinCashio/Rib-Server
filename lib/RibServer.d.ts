@@ -99,7 +99,6 @@ export default class RibServer {
     private getPersistentObject;
     private setUpKeysFromClient;
     private setClientFunctionMap;
-    private recievedKeysFromClientForSocket;
     private recieveKeysFromClient;
 }
 declare class PersistentObj {

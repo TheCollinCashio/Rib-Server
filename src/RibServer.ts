@@ -213,8 +213,9 @@ export default class RibServer {
             this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: query }, cb)
         } else {
             this._socketMap.forEach(socket => {
-                if(doesObjectMatchQuery(this.getPersistentObject(socket), query)) {
-                    socket.emit(key, ...args)
+                let client = this.getPersistentObject(socket)
+                if(doesObjectMatchQuery(client, query) && typeof client[key] === 'function') {
+                    client[key](...args)
                 }
             })
         }
@@ -337,7 +338,6 @@ export default class RibServer {
     private setUpKeysFromClient(socket: SocketIORib.Socket) {
         socket.on("RibSendKeysToServer", (keys: string[]) => {
             this.setClientFunctionMap(keys)
-            this.recievedKeysFromClientForSocket()
             this.recieveKeysFromClient()
 
             if (!socket._ribSentFirstSetOfKeys) {
@@ -380,20 +380,6 @@ export default class RibServer {
                     this._nameSpace.emit(key, ...args)
                 }
             })
-        }
-    }
-
-    private recievedKeysFromClientForSocket() {
-        let socketKeys = [...this._socketMap.keys()]
-        for (let socketId of socketKeys) {
-            let socket = this._socketMap.get(socketId)
-            let ribClient = this.getPersistentObject(socket)
-            let funcKeys = [...this.clientFunctionMap.keys()]
-            for (let key of funcKeys) {
-                ribClient[key] = (...args) => {
-                    socket.emit(key, ...args)
-                }
-            }
         }
     }
 
