@@ -61,7 +61,7 @@ export default class RibServer {
         * Set static folders that can be accessed by a client
         * @param folderPaths
     **/
-    static setClientFolders(folderPaths: string[]): void;
+    static setClientFolders(folderPaths: any[]): void;
     /**
         * Get application to use for middleware
     **/

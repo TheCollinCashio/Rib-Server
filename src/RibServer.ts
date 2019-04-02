@@ -133,17 +133,27 @@ export default class RibServer {
         * Set static folders that can be accessed by a client
         * @param folderPath
     **/
-    static setClientFolder(folderPath) {
-        app.use(express.static(folderPath))
+    static setClientFolder(folderPath: any) {
+        app.use(folderPath.path, express.static(folderPath.fullPath))
     }
 
     /**
         * Set static folders that can be accessed by a client
         * @param folderPaths
     **/
-    static setClientFolders(folderPaths: string[]) {
+    static setClientFolders(folderPaths: any[]) {
         for (let folderPath of folderPaths) {
-            this.setClientFolder(folderPath)
+            let folderObject = {
+                path: null,
+                fullPath: null
+            }
+            if (typeof folderPath === 'string') {
+                folderObject.path = ''
+                folderObject.fullPath = folderPath
+            } else {
+                folderObject = folderPath
+            }
+            this.setClientFolder(folderObject)
         }
     }
 
