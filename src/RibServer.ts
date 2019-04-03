@@ -225,17 +225,29 @@ export default class RibServer {
         * @param query
         * @param cb
     **/
-    runPOF(key: string, args: any[], query: object, cb: (...args: any) => void) {
-        if (isRedisConnected) {
-            this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: query }, cb)
-        } else {
-            this._socketMap.forEach(socket => {
-                let client = this.getPersistentObject(socket)
-                if(doesObjectMatchQuery(client, query) && typeof client[key] === 'function') {
-                    client[key](...args)
-                }
-            })
-        }
+    runPOF(key: string, args: any[], query: object) {
+        return new Promise((resolve, reject) => {
+            if (isRedisConnected) {
+                //  @ts-ignore
+                this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: query }, (err: any, replies: any) => {
+                    if(err) {
+                        reject(err)
+                    } else {
+                        resolve(replies)
+                    }
+                })
+            }
+            else {
+                let data = []
+                this._socketMap.forEach(socket => {
+                    let client = this.getPersistentObject(socket);
+                    if (doesObjectMatchQuery(client, query) && typeof client[key] === 'function') {
+                        data.push(client[key](...args))
+                    }
+                });
+                resolve(data)
+            }
+        })
     }
 
     private isArgTypesValid(argTypes: string[], fnName: string) {
@@ -291,19 +303,18 @@ export default class RibServer {
     }
 
     private setCustomHook() {
-        this._nameSpace.adapter.customHook = ({ key, args, query }, cb: (...args: any) => void) => {
+        this._nameSpace.adapter.customHook = ({ key, args, query }, cb: (...argments: any) => void) => {
+            let data = []
             this._socketMap.forEach(socket => {
                 let persistentObj = this.getPersistentObject(socket)
                 if(doesObjectMatchQuery(persistentObj, query)){
                     let fn = persistentObj[key]
                     if (typeof fn === "function") {
-                        let data = fn(...args)
-                        if (typeof cb === "function") {
-                            cb(data)
-                        }
+                        data.push(fn(...args))
                     }
                 }
             })
+            cb(...data)
         }
     }
 

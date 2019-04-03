@@ -93,7 +93,7 @@ export default class RibServer {
         * @param query
         * @param cb
     **/
-    runPOF(key: string, args: any[], query: object, cb: (...args: any) => void): void;
+    runPOF(key: string, args: any[], query: object): Promise<{}>;
     private isArgTypesValid;
     private isArgsValid;
     private setCustomHook;
