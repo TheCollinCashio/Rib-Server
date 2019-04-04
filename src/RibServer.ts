@@ -233,7 +233,12 @@ export default class RibServer {
                     if(err) {
                         reject(err)
                     } else {
-                        resolve(replies)
+                        let cleanData = this.getCleanData(replies)
+                        if (cleanData.length <= 1) {
+                            resolve(...cleanData)
+                        } else {
+                            resolve(cleanData)
+                        }
                     }
                 })
             }
@@ -242,12 +247,30 @@ export default class RibServer {
                 this._socketMap.forEach(socket => {
                     let client = this.getPersistentObject(socket);
                     if (doesObjectMatchQuery(client, query) && typeof client[key] === 'function') {
-                        data.push(client[key](...args))
+                        let retData = client[key](...args)
+                        if (retData !== undefined) {
+                            data.push(retData)
+                        }
                     }
                 });
-                resolve(data)
+
+                if (data.length <= 1) {
+                    resolve(...data)
+                } else {
+                    resolve(data)
+                }
             }
         })
+    }
+
+    private getCleanData(arr: any[]) {
+        let retData = []
+        arr.forEach((val) => {
+            if (val !== undefined) {
+                retData.push(val)
+            }
+        })
+        return retData
     }
 
     private isArgTypesValid(argTypes: string[], fnName: string) {
@@ -303,14 +326,18 @@ export default class RibServer {
     }
 
     private setCustomHook() {
-        this._nameSpace.adapter.customHook = ({ key, args, query }, cb: (...argments: any) => void) => {
+        this._nameSpace.adapter.customHook = ({ key, args, query, isEmit }, cb: (...argments: any) => void) => {
             let data = []
             this._socketMap.forEach(socket => {
                 let persistentObj = this.getPersistentObject(socket)
                 if(doesObjectMatchQuery(persistentObj, query)){
-                    let fn = persistentObj[key]
-                    if (typeof fn === "function") {
-                        data.push(fn(...args))
+                    if (isEmit) {
+                        socket.emit(key, ...args)
+                    } else {
+                        let fn = persistentObj[key]
+                        if (typeof fn === "function") {
+                            data.push(fn(...args))
+                        }
                     }
                 }
             })
@@ -390,7 +417,7 @@ export default class RibServer {
                                 this._nameSpace.to(includeId).emit(key, ...args)
                             } else {
                                 if (isRedisConnected) {
-                                    this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: finalArgumentQuery })
+                                    this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: finalArgumentQuery, isEmit: true }, () => {})
                                 } else {
                                     this._socketMap.forEach(socket => {
                                         if(doesObjectMatchQuery(this.getPersistentObject(socket), finalArgumentQuery)) {
