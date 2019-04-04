@@ -1,5 +1,6 @@
 let RibServer = require("../lib/RibServer").default
-RibServer.startServer(process.argv[2], "This is much easier to program")
+const PORT = process.argv[2] || 5000
+RibServer.startServer(PORT, "This is much easier to program")
 RibServer.setRedisUrl('//localhost:6379')
 
 let myRib = new RibServer()
@@ -30,5 +31,10 @@ async function getNames() {
 myRib.onDisconnect((client) => {
     console.log("A client disconnected 🙁")
 })
+
+setTimeout(() => {
+    console.log('TRY TO SEND')
+    myRib.sendMSG('HELOOOOOOO')
+}, 10000)
 
 myRib.exposeFunctions([setName, getNames])
