@@ -43,7 +43,7 @@ export default class RibServer {
             })
         }
 
-        if(isRedisConnected) {
+        if (isRedisConnected) {
             this.setCustomHook()
         }
 
@@ -78,7 +78,7 @@ export default class RibServer {
         for (let fnName of fnNames) {
             this.clientFunctionMap.set(fnName, () => {
                 let errorMessage = new Error(`${fnName} has not been bound properly to server`)
-                console.error(errorMessage) 
+                console.error(errorMessage)
             })
         }
     }
@@ -158,9 +158,9 @@ export default class RibServer {
     }
 
     /**
-        * Get application to use for middleware
+        * Get express app to use for middleware
     **/
-    static getApp() : Express.Application {
+    static getApp(): any {
         return app
     }
 
@@ -172,7 +172,7 @@ export default class RibServer {
         let fnName = fn.name
 
         //  @ts-ignore
-        let argTypes : string[] = fn.argTypes
+        let argTypes: string[] = fn.argTypes
 
         if (this.isArgTypesValid(argTypes, fnName)) {
             if (this.serverFunctionMap.get(fnName)) {
@@ -230,7 +230,7 @@ export default class RibServer {
             if (isRedisConnected) {
                 //  @ts-ignore
                 this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: query }, (err: any, replies: any) => {
-                    if(err) {
+                    if (err) {
                         reject(err)
                     } else {
                         let cleanData = this.getCleanData(replies)
@@ -268,11 +268,11 @@ export default class RibServer {
         let isValid = true
         if (typeof argTypes === "object") {
             let validArgTypes = ["undefined", "object", "boolean", "number", "string", "symbol", "object", "null", "any"]
-            for (let i=0; i<argTypes.length; i++) {
+            for (let i = 0; i < argTypes.length; i++) {
                 if (validArgTypes.indexOf(argTypes[i]) === -1) {
                     let possibleTypes = ""
-                    for (let x=0; x<validArgTypes.length; x++) {
-                        if (x === validArgTypes.length-1) {
+                    for (let x = 0; x < validArgTypes.length; x++) {
+                        if (x === validArgTypes.length - 1) {
                             possibleTypes += `or \x1b[33m${validArgTypes[x]}\x1b[0m.`
                         } else {
                             possibleTypes += `\x1b[33m${validArgTypes[x]}\x1b[0m, `
@@ -289,15 +289,15 @@ export default class RibServer {
     private isArgsValid(args: any[], argTypes: string[], fnName: string) {
         let isArgsValid = true
 
-        if (typeof argTypes === "object"){
+        if (typeof argTypes === "object") {
             let argTypesLength = argTypes.length
             let nTh = { 1: "st", 2: "nd", 3: "rd" }
 
-            for (let i=0; i<argTypesLength; i++) {
+            for (let i = 0; i < argTypesLength; i++) {
                 let actualType = args[i] === null ? "null" : typeof args[i]
                 let expectedType = argTypes[i]
                 if (actualType !== expectedType && argTypes[i] !== "any") {
-                    let numChar = `${i+1}${nTh[i+1] ? nTh[i+1] : "th"}`
+                    let numChar = `${i + 1}${nTh[i + 1] ? nTh[i + 1] : "th"}`
                     isArgsValid = false
                     let errorMessage = new Error(`In function \x1b[36m${fnName}\x1b[0m:\nExpected argument type of \x1b[33m${expectedType}\x1b[0m for \x1b[35m${numChar}\x1b[0m parameter, but found \x1b[31m${actualType}\x1b[0m`)
                     console.error(errorMessage)
@@ -321,7 +321,7 @@ export default class RibServer {
             let data = []
             this._socketMap.forEach(socket => {
                 let persistentObj = this.getPersistentObject(socket)
-                if(doesObjectMatchQuery(persistentObj, query)){
+                if (doesObjectMatchQuery(persistentObj, query)) {
                     if (isEmit) {
                         socket.emit(key, ...args)
                     } else {
@@ -408,10 +408,10 @@ export default class RibServer {
                                 this._nameSpace.to(includeId).emit(key, ...args)
                             } else {
                                 if (isRedisConnected) {
-                                    this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: finalArgumentQuery, isEmit: true }, () => {})
+                                    this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: finalArgumentQuery, isEmit: true }, () => { })
                                 } else {
                                     this._socketMap.forEach(socket => {
-                                        if(doesObjectMatchQuery(this.getPersistentObject(socket), finalArgumentQuery)) {
+                                        if (doesObjectMatchQuery(this.getPersistentObject(socket), finalArgumentQuery)) {
                                             socket.emit(key, ...args)
                                         }
                                     })

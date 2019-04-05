@@ -1,5 +1,4 @@
 /// <reference types="socket.io" />
-/// <reference types="express-serve-static-core" />
 export default class RibServer {
     _nameSpace: SocketIO.Namespace;
     _socketMap: Map<string, SocketIORib.Socket>;
@@ -63,9 +62,9 @@ export default class RibServer {
     **/
     static setClientFolders(folderPaths: any[]): void;
     /**
-        * Get application to use for middleware
+        * Get express app to use for middleware
     **/
-    static getApp(): Express.Application;
+    static getApp(): any;
     /**
         * Expose a server-side function that can be called from the rib-client instance
         * @param fn
