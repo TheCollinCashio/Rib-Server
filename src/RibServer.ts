@@ -234,11 +234,7 @@ export default class RibServer {
                         reject(err)
                     } else {
                         let cleanData = this.getCleanData(replies)
-                        if (cleanData.length <= 1) {
-                            resolve(...cleanData)
-                        } else {
-                            resolve(cleanData)
-                        }
+                        resolve(cleanData)
                     }
                 })
             }
@@ -253,12 +249,7 @@ export default class RibServer {
                         }
                     }
                 });
-
-                if (data.length <= 1) {
-                    resolve(...data)
-                } else {
-                    resolve(data)
-                }
+                resolve(data)
             }
         })
     }
