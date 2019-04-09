@@ -88,7 +88,7 @@ export default class RibServer {
         * @param fnName
         * @param args
     **/
-    call(fnName: string, ...args: any[]) {
+    call(fnName: string, ...args) {
         if (typeof this[fnName] === "function") {
             this[fnName](...args)
         } else {
@@ -223,7 +223,7 @@ export default class RibServer {
         * @param fnName
         * @param args
     **/
-    runPOF(key: string, ...args: any[]) {
+    runPOF(key: string, ...args) {
         return new Promise((resolve, reject) => {
             let query = {}
             if (args.length > 0) {
