@@ -32,7 +32,7 @@ export default class RibServer {
         * @param fnName
         * @param args
     **/
-    call(fnName: string, args: any[]): void;
+    call(fnName: string, ...args: any[]): void;
     /**
         * Starts up a server with a specified port and an optional message log.
         * @param port
@@ -89,10 +89,8 @@ export default class RibServer {
         * Run a persistent object function that matches a query
         * @param fnName
         * @param args
-        * @param query
-        * @param cb
     **/
-    runPOF(key: string, args: any[], query: object): Promise<{}>;
+    runPOF(key: string, ...args: any[]): Promise<{}>;
     private getCleanData;
     private isArgTypesValid;
     private isArgsValid;

@@ -88,7 +88,7 @@ export default class RibServer {
         * @param fnName
         * @param args
     **/
-    call(fnName: string, args: any[]) {
+    call(fnName: string, ...args: any[]) {
         if (typeof this[fnName] === "function") {
             this[fnName](...args)
         } else {
@@ -222,11 +222,20 @@ export default class RibServer {
         * Run a persistent object function that matches a query
         * @param fnName
         * @param args
-        * @param query
-        * @param cb
     **/
-    runPOF(key: string, args: any[], query: object) {
+    runPOF(key: string, ...args: any[]) {
         return new Promise((resolve, reject) => {
+            let query = {}
+            if (args.length > 0) {
+                let finalArgument = args[args.length - 1]
+                if (typeof finalArgument === 'object') {
+                    if (typeof finalArgument.query === 'object') {
+                        query = Object.assign({}, finalArgument.query)
+                        delete args[args.length - 1]
+                    }
+                }
+            }
+
             if (isRedisConnected) {
                 //  @ts-ignore
                 this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: query }, (err: any, replies: any) => {
@@ -399,12 +408,13 @@ export default class RibServer {
                 let isGlobalEmit = true
                 if (args.length > 0) {
                     let finalArgument = args[args.length - 1]
-                    if (finalArgument) {
-                        if (finalArgument.query) {
-                            let finalArgumentQuery = finalArgument.query
+                    if (typeof finalArgument === 'object') {
+                        if (typeof finalArgument.query === 'object') {
+                            let finalArgumentQuery = Object.assign({}, finalArgument.query)
                             let includeId = finalArgumentQuery._ribId
+                            delete args[args.length - 1]
+                            
                             if (includeId && typeof includeId === "string") {
-                                delete args[args.length - 1]
                                 this._nameSpace.to(includeId).emit(key, ...args)
                             } else {
                                 if (isRedisConnected) {
