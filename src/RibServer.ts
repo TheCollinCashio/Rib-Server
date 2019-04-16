@@ -32,7 +32,7 @@ export default class RibServer {
         if (isSingleton && instance) {
             returnInstance = instance
         } else {
-            this._nameSpace = this._nameSpace ? io.of(nameSpace) : io.of("/")
+            this._nameSpace = nameSpace ? io.of(nameSpace) : io.of("/")
             this._nameSpace.on("connection", (socket: SocketIORib.Socket) => {
                 this.connFunction = this.connFunction ? this.connFunction : () => { } // keep app from breaking if user does not input a connFunction
                 this.setUpPersistentObject(socket)
