@@ -76,12 +76,11 @@ const app = RibServer.getApp()
 ```
 Get express app to use for middleware.
 
-**The default constructor takes two parameters:**
+**Instantiate Rib Server:**
 ```js
 let myRib = new RibServer()
 ```
-Instantiate rib server. 
-
+ 
 Note: The constructor takes two optional parameters. The first is the namespace that the client is trying to connect to(default is "/"). The second is whether or not you want to use the singleton design pattern(default is true).
 
 **onConnect: Function**
