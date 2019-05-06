@@ -2,6 +2,10 @@ let RibServer = require("../lib/RibServer").default
 const PORT = process.argv[2] || 5000
 RibServer.startServer(PORT, "This is much easier to program")
 // RibServer.setRedisUrl('//localhost:6379')
+// RibServer.setClientFolders([
+//     { path: "/Home/Client/", fullPath: `${ __dirname }/Home/Client/` },
+// ])
+// RibServer.setRoute("/", `${ __dirname }/Home/Client/index.html`)
 
 let myRib = new RibServer()
 myRib.onConnect((client) => {
