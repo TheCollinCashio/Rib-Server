@@ -16,6 +16,7 @@ let instance = null
 export default class RibServer {
     public _nameSpace: SocketIO.Namespace
     public _socketMap = new Map<string, SocketIORib.Socket>()
+    private _clientObjectMap = new Map<string, PersistentObj>()
     private connFunction: Function
     private disconnFunction: Function
     private serverFunctionMap = new Map<string, ((...args: any[]) => void)>()
@@ -33,9 +34,10 @@ export default class RibServer {
             returnInstance = instance
         } else {
             this._nameSpace = nameSpace ? io.of(nameSpace) : io.of("/")
+
             this._nameSpace.on("connection", (socket: SocketIORib.Socket) => {
                 this.connFunction = this.connFunction ? this.connFunction : () => { } // keep app from breaking if user does not input a connFunction
-                this.setUpPersistentObject(socket)
+                this.setUpPersistentObject(socket, socket.handshake.query.socketToken)
                 this.setUpSocketMap(socket)
                 this.setSocketFunctions(socket)
                 this.sendKeysToClient(socket)
@@ -326,6 +328,7 @@ export default class RibServer {
     }
 
     private setCustomHook() {
+        //@ts-ignore
         this._nameSpace.adapter.customHook = ({ key, args, query, isEmit }, cb: (...argments: any) => void) => {
             let data = []
             this._socketMap.forEach(socket => {
@@ -382,8 +385,22 @@ export default class RibServer {
         socket.emit("RibSendKeysToClient", keys)
     }
 
-    private setUpPersistentObject(socket: SocketIORib.Socket) {
-        Object.assign(socket, { _ribClient: new PersistentObj(socket.id) })
+    private setUpPersistentObject(socket: SocketIORib.Socket, socketToken: string) {
+        let oldObj = this._clientObjectMap.get(socketToken);
+        if (typeof oldObj === 'object') {
+            Object.assign(socket, { _ribClient: oldObj });
+        } else {
+            Object.assign(socket, { _ribClient: new PersistentObj(socket.id) });
+            this._clientObjectMap.set(socket.id, socket._ribClient);
+
+            setTimeout((sockToken) => {
+                if (typeof this._clientObjectMap.get(sockToken) === 'object') {
+                    this._clientObjectMap.delete(socket.id);
+                }
+            }, (3600000 * 12), socketToken);
+
+            socket.emit("RibSendSocketTokenToClient", socket.id);
+        }
     }
 
     private getPersistentObject(socket: SocketIORib.Socket) {
@@ -413,11 +430,12 @@ export default class RibServer {
                             let finalArgumentQuery = Object.assign({}, finalArgument.query)
                             let includeId = finalArgumentQuery._ribId
                             delete args[args.length - 1]
-                            
+
                             if (includeId && typeof includeId === "string") {
                                 this._nameSpace.to(includeId).emit(key, ...args)
                             } else {
                                 if (isRedisConnected) {
+                                    //@ts-ignore
                                     this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: finalArgumentQuery, isEmit: true }, () => { })
                                 } else {
                                     this._socketMap.forEach(socket => {
