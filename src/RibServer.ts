@@ -389,6 +389,8 @@ export default class RibServer {
         let oldObj = this._clientObjectMap.get(socketToken);
         if (typeof oldObj === 'object') {
             Object.assign(socket, { _ribClient: oldObj });
+            //@ts-ignore
+            oldObj._ribId = socket.id;
         } else {
             Object.assign(socket, { _ribClient: new PersistentObj(socket.id) });
             this._clientObjectMap.set(socket.id, socket._ribClient);
