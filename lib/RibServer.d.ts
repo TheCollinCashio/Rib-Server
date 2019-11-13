@@ -2,6 +2,7 @@
 export default class RibServer {
     _nameSpace: SocketIO.Namespace;
     _socketMap: Map<string, SocketIORib.Socket>;
+    private _clientObjectMap;
     private connFunction;
     private disconnFunction;
     private serverFunctionMap;

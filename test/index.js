@@ -31,8 +31,16 @@ async function getNames() {
     return names
 }
 
+async function add(x, y) {
+    return x + y;
+}
+
+async function logMessage(message) {
+    console.log(message);
+}
+
 myRib.onDisconnect((client) => {
     console.log("A client disconnected 🙁")
 })
 
-myRib.exposeFunctions([setName, getNames])
+myRib.exposeFunctions([setName, getNames, logMessage, add])
