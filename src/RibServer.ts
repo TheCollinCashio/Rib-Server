@@ -328,6 +328,7 @@ export default class RibServer {
     }
 
     private setCustomHook() {
+        //@ts-ignore
         this._nameSpace.adapter.customHook = ({ key, args, query, isEmit }, cb: (...argments: any) => void) => {
             let data = []
             this._socketMap.forEach(socket => {
@@ -434,6 +435,7 @@ export default class RibServer {
                                 this._nameSpace.to(includeId).emit(key, ...args)
                             } else {
                                 if (isRedisConnected) {
+                                    //@ts-ignore
                                     this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: finalArgumentQuery, isEmit: true }, () => { })
                                 } else {
                                     this._socketMap.forEach(socket => {
