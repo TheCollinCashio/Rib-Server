@@ -16,7 +16,7 @@ let instance = null
 export default class RibServer {
     public _nameSpace: SocketIO.Namespace
     public _socketMap = new Map<string, SocketIORib.Socket>()
-    private _clientObjectMap = new Map<string, PersistentObj>()
+    static _clientObjectMap = new Map<string, PersistentObj>()
     private connFunction: Function
     private disconnFunction: Function
     private serverFunctionMap = new Map<string, ((...args: any[]) => void)>()
@@ -385,19 +385,21 @@ export default class RibServer {
         socket.emit("RibSendKeysToClient", keys)
     }
 
-    private setUpPersistentObject(socket: SocketIORib.Socket, socketToken: string) {
-        let oldObj = this._clientObjectMap.get(socketToken);
-        if (typeof oldObj === 'object') {
+    private async setUpPersistentObject(socket: SocketIORib.Socket, socketToken: string) {
+        Object.assign(socket, { _ribClient: new PersistentObj(socket.id) });
+        let oldObjArray = await this.runPOF("_ribGetClientObject", socketToken);
+
+        let oldObj = oldObjArray[0];
+        if (oldObj !== null && typeof oldObj === 'object') {
             Object.assign(socket, { _ribClient: oldObj });
             //@ts-ignore
             oldObj._ribId = socket.id;
         } else {
-            Object.assign(socket, { _ribClient: new PersistentObj(socket.id) });
-            this._clientObjectMap.set(socket.id, socket._ribClient);
+            RibServer._clientObjectMap.set(socket.id, socket._ribClient);
 
             setTimeout((sockToken) => {
-                if (typeof this._clientObjectMap.get(sockToken) === 'object') {
-                    this._clientObjectMap.delete(socket.id);
+                if (typeof RibServer._clientObjectMap.get(sockToken) === 'object') {
+                    RibServer._clientObjectMap.delete(sockToken);
                 }
             }, (3600000 * 12), socketToken);
 
@@ -474,6 +476,10 @@ class PersistentObj {
 
     constructor(id: string) {
         this._ribId = id
+    }
+
+    _ribGetClientObject(socketId: string) {
+        return RibServer._clientObjectMap.get(socketId)
     }
 }
 
