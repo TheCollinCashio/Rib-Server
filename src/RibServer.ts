@@ -391,7 +391,7 @@ export default class RibServer {
 
         let oldObj = oldObjArray[0];
         if (oldObj !== null && typeof oldObj === 'object') {
-            Object.assign(socket, { _ribClient: oldObj });
+            Object.assign(socket._ribClient, oldObj);
             //@ts-ignore
             oldObj._ribId = socket.id;
         } else {
