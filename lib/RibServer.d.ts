@@ -108,7 +108,7 @@ export default class RibServer {
 declare class PersistentObj {
     readonly _ribId: string;
     constructor(id: string);
-    _ribGetClientObject(socketId: string): PersistentObj;
+    _ribGetClientObjectDeleteMapItem(socketId: string): PersistentObj;
 }
 export declare namespace SocketIORib {
     interface Socket extends SocketIO.Socket {
