@@ -387,21 +387,24 @@ export default class RibServer {
 
     private async setUpPersistentObject(socket: SocketIORib.Socket, socketToken: string) {
         Object.assign(socket, { _ribClient: new PersistentObj(socket.id) });
-        let oldObjArray = await this.runPOF("_ribGetClientObject", socketToken);
+        let oldObjArray = await this.runPOF("_ribGetClientObjectDeleteMapItem", socketToken);
 
         let oldObj = oldObjArray[0];
-        if (oldObj !== null && typeof oldObj === 'object') {
+        if (oldObj) {
             Object.assign(socket._ribClient, oldObj);
             //@ts-ignore
             oldObj._ribId = socket.id;
+            RibServer._clientObjectMap.set(socket.id, socket._ribClient);
+
+            socket.emit("RibSendSocketTokenToClient", socket.id);
         } else {
             RibServer._clientObjectMap.set(socket.id, socket._ribClient);
 
             setTimeout((sockToken) => {
-                if (typeof RibServer._clientObjectMap.get(sockToken) === 'object') {
+                if (RibServer._clientObjectMap.get(sockToken)) {
                     RibServer._clientObjectMap.delete(sockToken);
                 }
-            }, (3600000 * 12), socketToken);
+            }, (3600000 * 6), socketToken);
 
             socket.emit("RibSendSocketTokenToClient", socket.id);
         }
@@ -478,8 +481,12 @@ class PersistentObj {
         this._ribId = id
     }
 
-    _ribGetClientObject(socketId: string) {
-        return RibServer._clientObjectMap.get(socketId)
+    _ribGetClientObjectDeleteMapItem(socketId: string) {
+        let returnObj = RibServer._clientObjectMap.get(socketId)
+        if (returnObj) {
+            RibServer._clientObjectMap.delete(socketId)
+        }
+        return returnObj
     }
 }
 
