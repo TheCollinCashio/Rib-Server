@@ -1,8 +1,7 @@
-/// <reference types="socket.io" />
+import { Express } from "express";
 export default class RibServer {
     _nameSpace: SocketIO.Namespace;
     _socketMap: Map<string, SocketIORib.Socket>;
-    static _clientObjectMap: Map<string, PersistentObj>;
     private connFunction;
     private disconnFunction;
     private serverFunctionMap;
@@ -65,7 +64,7 @@ export default class RibServer {
     /**
         * Get express app to use for middleware
     **/
-    static getApp(): any;
+    static getApp(): Express;
     /**
         * Expose a server-side function that can be called from the rib-client instance
         * @param fn
@@ -87,11 +86,11 @@ export default class RibServer {
     **/
     concealFunctions(fns: ((...args: any[]) => void)[], client: any): void;
     /**
-        * Run a persistent object function that matches a query
+        * Run a persistent object function that matches a query. Returns an array of expected returns
         * @param fnName
         * @param args
     **/
-    runPOF(key: string, ...args: any[]): Promise<{}>;
+    runPOF(key: string, ...args: any[]): Promise<any[]>;
     private getCleanData;
     private isArgTypesValid;
     private isArgsValid;
@@ -107,6 +106,7 @@ export default class RibServer {
 }
 declare class PersistentObj {
     readonly _ribId: string;
+    sessionExpirationDate: Date;
     constructor(id: string);
     _ribGetClientObjectDeleteMapItem(socketId: string): PersistentObj;
 }
