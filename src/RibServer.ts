@@ -1,26 +1,30 @@
-import * as express from "express"
-import * as socket from "socket.io"
-import * as redisAdapter from "socket.io-redis"
-import { Server } from "http"
-import { doesObjectMatchQuery } from "./Helper"
+import * as express from "express";
+import { Express } from "express";
+import * as socket from "socket.io";
+import * as redisAdapter from "socket.io-redis";
+import { Server } from "http";
+import { doesObjectMatchQuery } from "./Helper";
 
 //  Setup Socket Application
-let app = express()
-let server = new Server(app)
-let io = socket(server, { pingInterval: 3000, pingTimeout: 7500 })
-let isRedisConnected = false
+let app = express();
+let server = new Server(app);
+let io = socket(server, { pingInterval: 3000, pingTimeout: 7500 });
+let isRedisConnected = false;
 
 //  Setup instance for Singleton Design Pattern
-let instance = null
+let instance = null;
+
+//  Setup Map for Connected Sockets (Session Object)
+let _clientObjectMap = new Map<string, PersistentObj>();
+let _tokenExpiresIn = 6; //hours
 
 export default class RibServer {
-    public _nameSpace: SocketIO.Namespace
-    public _socketMap = new Map<string, SocketIORib.Socket>()
-    static _clientObjectMap = new Map<string, PersistentObj>()
-    private connFunction: Function
-    private disconnFunction: Function
-    private serverFunctionMap = new Map<string, ((...args: any[]) => void)>()
-    private clientFunctionMap = new Map<string, ((...args: any[]) => void)>()
+    public _nameSpace: SocketIO.Namespace;
+    public _socketMap = new Map<string, SocketIORib.Socket>();
+    private connFunction: Function;
+    private disconnFunction: Function;
+    private serverFunctionMap = new Map<string, ((...args: any[]) => void)>();
+    private clientFunctionMap = new Map<string, ((...args: any[]) => void)>();
 
     /**
         * Create an instance of rib-server.
@@ -28,12 +32,12 @@ export default class RibServer {
         * @param isSingleton
     **/
     constructor(nameSpace?: string, isSingleton = true) {
-        let returnInstance = this
+        let returnInstance = this;
 
         if (isSingleton && instance) {
-            returnInstance = instance
+            returnInstance = instance;
         } else {
-            this._nameSpace = nameSpace ? io.of(nameSpace) : io.of("/")
+            this._nameSpace = nameSpace ? io.of(nameSpace) : io.of("/");
 
             this._nameSpace.on("connection", (socket: SocketIORib.Socket) => {
                 this.connFunction = this.connFunction ? this.connFunction : () => { } // keep app from breaking if user does not input a connFunction
@@ -162,8 +166,8 @@ export default class RibServer {
     /**
         * Get express app to use for middleware
     **/
-    static getApp(): any {
-        return app
+    static getApp(): Express {
+        return app;
     }
 
     /**
@@ -221,19 +225,19 @@ export default class RibServer {
     }
 
     /**
-        * Run a persistent object function that matches a query
+        * Run a persistent object function that matches a query. Returns an array of expected returns
         * @param fnName
         * @param args
     **/
-    runPOF(key: string, ...args: any[]) {
+    runPOF(key: string, ...args: any[]): Promise<any[]> {
         return new Promise((resolve, reject) => {
-            let query = {}
+            let query = {};
             if (args.length > 0) {
-                let finalArgument = args[args.length - 1]
+                let finalArgument = args[args.length - 1];
                 if (typeof finalArgument === 'object') {
                     if (typeof finalArgument.query === 'object') {
-                        query = Object.assign({}, finalArgument.query)
-                        delete args[args.length - 1]
+                        query = Object.assign({}, finalArgument.query);
+                        delete args[args.length - 1];
                     }
                 }
             }
@@ -242,10 +246,10 @@ export default class RibServer {
                 //  @ts-ignore
                 this._nameSpace.adapter.customRequest({ key: key, args: [...args], query: query }, (err: any, replies: any) => {
                     if (err) {
-                        reject(err)
+                        reject(err);
                     } else {
-                        let cleanData = this.getCleanData(replies)
-                        resolve(cleanData)
+                        let cleanData = this.getCleanData(replies);
+                        resolve(cleanData);
                     }
                 })
             }
@@ -254,13 +258,13 @@ export default class RibServer {
                 this._socketMap.forEach(socket => {
                     let client = this.getPersistentObject(socket);
                     if (doesObjectMatchQuery(client, query) && typeof client[key] === 'function') {
-                        let retData = client[key](...args)
+                        let retData = client[key](...args);
                         if (retData !== undefined) {
-                            data.push(retData)
+                            data.push(retData);
                         }
                     }
                 });
-                resolve(data)
+                resolve(data);
             }
         })
     }
@@ -349,31 +353,31 @@ export default class RibServer {
     }
 
     private setUpSocketMap(socket: SocketIORib.Socket) {
-        this._socketMap.set(socket.id, socket)
+        this._socketMap.set(socket.id, socket);
         socket.on("disconnect", () => {
-            this._socketMap.delete(socket.id)
-            this.disconnFunction && this.disconnFunction(this.getPersistentObject(socket))
+            this._socketMap.delete(socket.id);
+            this.disconnFunction && this.disconnFunction(this.getPersistentObject(socket));
         })
     }
 
     private setSocketFunctions(socket: SocketIORib.Socket) {
         this.serverFunctionMap.forEach((x, event) => {
             socket.on(event, (...args) => {
-                let fn = this.serverFunctionMap.get(event)
-                let excludeResArgs = Object.assign([], args)
-                let resolve = null
+                let fn = this.serverFunctionMap.get(event);
+                let excludeResArgs = Object.assign([], args);
+                let resolve = null;
                 if (args[args.length - 1] !== undefined && typeof args[args.length - 1] === "function") {
-                    resolve = args[args.length - 1]
-                    excludeResArgs.splice(excludeResArgs.length - 1, 1)
+                    resolve = args[args.length - 1];
+                    excludeResArgs.splice(excludeResArgs.length - 1, 1);
                 }
                 let returnVal: any = fn(...excludeResArgs, this.getPersistentObject(socket))
                 if (typeof resolve === "function") {
                     if (returnVal instanceof Promise) {
                         returnVal.then((val) => {
-                            resolve(val)
+                            resolve(val);
                         })
                     } else {
-                        resolve(returnVal)
+                        resolve(returnVal);
                     }
                 }
             })
@@ -381,30 +385,31 @@ export default class RibServer {
     }
 
     private sendKeysToClient(socket: SocketIORib.Socket) {
-        let keys = [...this.serverFunctionMap.keys()]
-        socket.emit("RibSendKeysToClient", keys)
+        let keys = [...this.serverFunctionMap.keys()];
+        socket.emit("RibSendKeysToClient", keys);
     }
 
     private async setUpPersistentObject(socket: SocketIORib.Socket, socketToken: string) {
         Object.assign(socket, { _ribClient: new PersistentObj(socket.id) });
-        let oldObjArray = await this.runPOF("_ribGetClientObjectDeleteMapItem", socketToken);
+        let sessionObjArray = await this.runPOF("_ribGetClientObjectDeleteMapItem", socketToken);
 
-        let oldObj = oldObjArray[0];
-        if (oldObj) {
-            Object.assign(socket._ribClient, oldObj);
+        let sessionObject = sessionObjArray[0];
+        if (sessionObject && sessionObject.sessionExpirationDate < new Date()) {
+            Object.assign(socket._ribClient, sessionObject);
+            
             //@ts-ignore
-            oldObj._ribId = socket.id;
-            RibServer._clientObjectMap.set(socket.id, socket._ribClient);
+            sessionObject._ribId = socket.id;
+            _clientObjectMap.set(socket.id, socket._ribClient);
 
             socket.emit("RibSendSocketTokenToClient", socket.id);
         } else {
-            RibServer._clientObjectMap.set(socket.id, socket._ribClient);
+            _clientObjectMap.set(socket.id, socket._ribClient);
 
             setTimeout((sockToken) => {
-                if (RibServer._clientObjectMap.get(sockToken)) {
-                    RibServer._clientObjectMap.delete(sockToken);
+                if (_clientObjectMap.get(sockToken)) {
+                    _clientObjectMap.delete(sockToken);
                 }
-            }, (3600000 * 6), socketToken);
+            }, (_tokenExpiresIn * 3600000), socketToken);
 
             socket.emit("RibSendSocketTokenToClient", socket.id);
         }
@@ -475,18 +480,22 @@ export default class RibServer {
 }
 
 class PersistentObj {
-    readonly _ribId: string
+    readonly _ribId: string;
+    public sessionExpirationDate: Date;
 
     constructor(id: string) {
-        this._ribId = id
+        this._ribId = id;
+        this.sessionExpirationDate = new Date();
+        this.sessionExpirationDate.setTime(this.sessionExpirationDate.getTime() * (_tokenExpiresIn * 3600000));
     }
 
+    // can put this in customHook function
     _ribGetClientObjectDeleteMapItem(socketId: string) {
-        let returnObj = RibServer._clientObjectMap.get(socketId)
+        let returnObj = _clientObjectMap.get(socketId);
         if (returnObj) {
-            RibServer._clientObjectMap.delete(socketId)
+            _clientObjectMap.delete(socketId);
         }
-        return returnObj
+        return returnObj;
     }
 }
 

@@ -8,8 +8,8 @@
     "lib/*"
   ],
   "scripts": {
-    "pub": "tsc; npm publish",
-    "test": "tsc; node test/index.js"
+    "pub": "npm run build; npm version patch; npm publish",
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -36,7 +36,6 @@
     "socket.io-redis": "^5.2.0"
   },
   "devDependencies": {
-    "@types/express": "^4.16.1",
     "@types/jsonwebtoken": "^8.3.5",
     "@types/node": "^11.15.2",
     "@types/socket.io": "^2.1.4",
