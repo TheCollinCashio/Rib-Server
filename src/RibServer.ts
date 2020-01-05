@@ -19,9 +19,9 @@ let _clientObjectMap = new Map<string, PersistentObj>();
 let _tokenExpiresIn = 6; //hours
 
 
-export default class RibServer<F> {
+export default class RibServer<F = {}> {
     //@ts-ignore
-    public clientFunctions: F = {}
+    public clientFunctions: Readonly<F>
     public _nameSpace: SocketIO.Namespace;
     public _socketMap = new Map<string, SocketIORib.Socket>();
     private connFunction: Function;
