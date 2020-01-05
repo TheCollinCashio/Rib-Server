@@ -1,6 +1,6 @@
 {
   "name": "rib-server",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "A framework for a Realtime Integrated Backend",
   "main": "lib/RibServer.js",
   "types": "lib/RibServer.d.ts",
@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^8.3.5",
-    "@types/node": "^11.15.2",
+    "@types/node": "^11.15.4",
     "@types/socket.io": "^2.1.4",
     "@types/socket.io-redis": "^1.0.25"
   }

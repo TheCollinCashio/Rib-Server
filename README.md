@@ -11,10 +11,10 @@ RibServer.startServer(5000, "This is much easier to program")
 let myRib = new RibServer()
 myRib.onConnect((client) => {
     //  call the client-side function sendMSG on all clients except the one that just connected
-    myRib.sendMSG("Someone else joined the party 🎊", { query: { _ribId: { $ne: client._ribId } }})
+    myRib.clientFunctions.sendMSG("Someone else joined the party 🎊", { query: { _ribId: { $ne: client._ribId } }})
 
     // call the client-side function sendMSG for just the newly connected client
-    myRib.sendMSG("Welcome to this example 😃", { query: client })
+    myRib.clientFunctions.sendMSG("Welcome to this example 😃", { query: client })
 })
 
 function logMessage(msg) {

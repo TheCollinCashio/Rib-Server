@@ -18,7 +18,10 @@ let instance = null;
 let _clientObjectMap = new Map<string, PersistentObj>();
 let _tokenExpiresIn = 6; //hours
 
-export default class RibServer {
+
+export default class RibServer<F = {}> {
+    //@ts-ignore
+    public clientFunctions: Readonly<F>
     public _nameSpace: SocketIO.Namespace;
     public _socketMap = new Map<string, SocketIORib.Socket>();
     private connFunction: Function;
@@ -95,8 +98,8 @@ export default class RibServer {
         * @param args
     **/
     call(fnName: string, ...args: any[]) {
-        if (typeof this[fnName] === "function") {
-            this[fnName](...args)
+        if (typeof this.clientFunctions[fnName] === "function") {
+            this.clientFunctions[fnName](...args)
         } else {
             let errorMessage = `${fnName} is not an availiable function`
             console.error(errorMessage)
@@ -472,8 +475,8 @@ export default class RibServer {
     private recieveKeysFromClient() {
         let funcKeys = [...this.clientFunctionMap.keys()]
         for (let key of funcKeys) {
-            if (!this[key]) {
-                this[key] = this.clientFunctionMap.get(key)
+            if (!this.clientFunctions[key]) {
+                this.clientFunctions[key] = this.clientFunctionMap.get(key)
             }
         }
     }
