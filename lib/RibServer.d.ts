@@ -1,5 +1,6 @@
 import { Express } from "express";
-export default class RibServer {
+export default class RibServer<F> {
+    clientFunctions: F;
     _nameSpace: SocketIO.Namespace;
     _socketMap: Map<string, SocketIORib.Socket>;
     private connFunction;
