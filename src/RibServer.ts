@@ -398,10 +398,10 @@ export default class RibServer<F = {}> {
 
         let sessionObject = sessionObjArray[0];
         if (sessionObject && sessionObject.sessionExpirationDate < new Date()) {
-            Object.assign(socket._ribClient, sessionObject);
-            
             //@ts-ignore
             sessionObject._ribId = socket.id;
+            Object.assign(socket._ribClient, sessionObject);
+            
             _clientObjectMap.set(socket.id, socket._ribClient);
 
             socket.emit("RibSendSocketTokenToClient", socket.id);
